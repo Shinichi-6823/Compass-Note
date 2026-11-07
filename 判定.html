@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="判定">
+<title>コンパスヒヤリング 端末判定</title>
+<style>
+  :root{
+    --bg:#f4f6f9; --card:#fff; --text:#2b3038; --sub:#5f6875;
+    --line:#d2d8e0; --accent:#1f5f9e; --ok:#1d7a44; --ng:#c0392b; --na:#8a6d1f;
+  }
+  @media (prefers-color-scheme:dark){
+    :root:not([data-theme="light"]){
+      --bg:#14171c; --card:#1d2127; --text:#e8ebef; --sub:#9aa3b0;
+      --line:#333a44; --accent:#6fa8dc; --ok:#4fc17e; --ng:#ef7a6c; --na:#d9b65a;
+    }
+  }
+  *{box-sizing:border-box;-webkit-text-size-adjust:100%}
+  body{margin:0;padding:16px 16px 48px;background:var(--bg);color:var(--text);
+    font:16px/1.6 -apple-system,BlinkMacSystemFont,"Hiragino Sans","Noto Sans JP",sans-serif}
+  h1{font-size:19px;margin:0 0 4px}
+  .lead{color:var(--sub);font-size:13px;margin:0 0 16px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:10px;
+    padding:12px 14px;margin-bottom:12px}
+  .card h2{font-size:14px;margin:0 0 10px;color:var(--accent)}
+  .row{display:flex;gap:10px;align-items:flex-start;padding:7px 0;border-top:1px solid var(--line)}
+  .row:first-of-type{border-top:0}
+  .mark{flex:0 0 1.6em;font-weight:700;font-size:17px;text-align:center}
+  .ok{color:var(--ok)} .ng{color:var(--ng)} .na{color:var(--na)}
+  .k{flex:1 1 auto;min-width:0}
+  .k b{display:block;font-weight:600;font-size:14px}
+  .k span{display:block;color:var(--sub);font-size:12px;word-break:break-all}
+  button{width:100%;min-height:52px;margin:8px 0 0;padding:12px;font-size:16px;
+    font-family:inherit;font-weight:600;color:#fff;background:var(--accent);
+    border:0;border-radius:9px;cursor:pointer;-webkit-appearance:none}
+  button:disabled{opacity:.5}
+  button.sub{background:transparent;color:var(--accent);border:1.5px solid var(--accent)}
+  pre{margin:0;padding:10px;background:var(--bg);border:1px solid var(--line);
+    border-radius:7px;font-size:11px;line-height:1.5;white-space:pre-wrap;word-break:break-all;
+    max-height:40vh;overflow:auto;-webkit-overflow-scrolling:touch}
+  .note{font-size:12px;color:var(--sub);margin:8px 0 0}
+</style>
+</head>
+<body>
+<h1>コンパスヒヤリング 端末判定</h1>
+<p class="lead">この iPhone で、音声録音・音声認識ができるかを調べます。外部へ何も送りません。<br>
+<b>ホーム画面に追加してから、もう一度ここを開いて試してください</b>（Safari で動いても、ホーム画面のアプリでは動かない機能があります）。</p>
+
+<div class="card">
+  <h2>1. 今の状態</h2>
+  <div id="env"></div>
+</div>
+
+<div class="card">
+  <h2>2. マイクで録音（端末内Whisper に必要）</h2>
+  <div id="mic"></div>
+  <button id="bMic">マイクを試す（3秒録音）</button>
+  <audio id="play" controls style="width:100%;margin-top:10px;display:none"></audio>
+</div>
+
+<div class="card">
+  <h2>3. 音声認識（Web Speech API）</h2>
+  <div id="sr"></div>
+  <button id="bSr">音声認識を試す（話してください）</button>
+  <p class="note">※ Apple のサーバーへ音声が送られる実装です。ここでは「動くかどうか」だけを見ます。顧客名は言わないでください。</p>
+</div>
+
+<div class="card">
+  <h2>4. WebGPU（文字起こしの速さに効く）</h2>
+  <div id="gpu"></div>
+  <button id="bGpu" class="sub">WebGPU を試す</button>
+</div>
+
+<div class="card">
+  <h2>5. 結果</h2>
+  <pre id="out">（上のボタンを押すと増えていきます）</pre>
+  <button id="bCopy" class="sub">結果をコピー</button>
+  <p class="note">コピーした文字を、そのまま私に貼って送ってください。</p>
+</div>
+
+<script>
+(function(){
+  'use strict';
+  var L = [];                                   // 結果の行（コピー用）
+  function log(s){ L.push(s); document.getElementById('out').textContent = L.join('\n'); }
+
+  function row(where, mark, cls, key, val){
+    var d = document.createElement('div');
+    d.className = 'row';
+    var m = document.createElement('div'); m.className = 'mark ' + cls; m.textContent = mark;
+    var k = document.createElement('div'); k.className = 'k';
+    var b = document.createElement('b'); b.textContent = key;
+    var s = document.createElement('span'); s.textContent = val;
+    k.appendChild(b); k.appendChild(s); d.appendChild(m); d.appendChild(k);
+    document.getElementById(where).appendChild(d);
+    log((mark === '○' ? 'OK  ' : mark === '×' ? 'NG  ' : '??  ') + key + ' : ' + val);
+  }
+  var OK = '○', NG = '×', NA = '?';
+
+  // ── 1. 今の状態 ──
+  var standalone = (window.navigator.standalone === true) ||
+    (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches);
+  row('env', standalone ? OK : NA, standalone ? 'ok' : 'na', '開き方',
+      standalone ? 'ホーム画面のアプリ（standalone）' : 'Safari のタブ（ホーム画面に追加して試してください）');
+  row('env', window.isSecureContext ? OK : NG, window.isSecureContext ? 'ok' : 'ng', '安全な接続',
+      window.isSecureContext ? 'https（マイクも Service Worker も使えます）'
+                             : 'http か file（マイク・PWA は使えません。GitHub Pages に置いてください）');
+  row('env', NA, 'na', '端末', navigator.userAgent);
+  row('env', NA, 'na', '画面', window.innerWidth + '×' + window.innerHeight +
+      ' / 実画素比 ' + (window.devicePixelRatio || 1));
+  var sw = 'serviceWorker' in navigator;
+  row('env', sw ? OK : NG, sw ? 'ok' : 'ng', 'Service Worker（オフライン）', sw ? '使えます' : '使えません');
+  var ls = (function(){ try { localStorage.setItem('_t','1'); localStorage.removeItem('_t'); return true; } catch(e){ return false; } })();
+  row('env', ls ? OK : NG, ls ? 'ok' : 'ng', 'localStorage（自動保存）', ls ? '使えます' : '使えません（プライベートブラウズ？）');
+  var cs = ('caches' in window);
+  row('env', cs ? OK : NG, cs ? 'ok' : 'ng', 'Cache Storage（モデルの保存）', cs ? '使えます' : '使えません');
+  if (navigator.storage && navigator.storage.estimate) {
+    navigator.storage.estimate().then(function(e){
+      row('env', OK, 'ok', '使える容量の目安',
+        Math.round((e.quota || 0) / 1048576) + ' MB（うち使用 ' + Math.round((e.usage || 0) / 1048576) + ' MB）');
+    }).catch(function(){});
+  }
+
+  // ── 2. マイク ──
+  var hasGUM = !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia);
+  var hasMR = (typeof window.MediaRecorder !== 'undefined');
+  row('mic', hasGUM ? OK : NG, hasGUM ? 'ok' : 'ng', 'getUserMedia', hasGUM ? 'あります' : 'ありません');
+  row('mic', hasMR ? OK : NG, hasMR ? 'ok' : 'ng', 'MediaRecorder', hasMR ? 'あります' : 'ありません');
+  if (hasMR && MediaRecorder.isTypeSupported) {
+    var types = ['audio/mp4', 'audio/mp4;codecs=mp4a.40.2', 'audio/aac', 'audio/webm', 'audio/webm;codecs=opus'];
+    var sup = types.filter(function(t){ try { return MediaRecorder.isTypeSupported(t); } catch(e){ return false; } });
+    row('mic', sup.length ? OK : NA, sup.length ? 'ok' : 'na', 'isTypeSupported が通す形式',
+        sup.length ? sup.join(' / ') : 'なし（※この判定は iOS では当てになりません。実際の録音で確かめます）');
+  }
+  document.getElementById('bMic').addEventListener('click', function(){
+    var btn = this; btn.disabled = true; btn.textContent = 'マイクの許可を待っています…';
+    if (!hasGUM) { row('mic', NG, 'ng', '録音', 'getUserMedia がありません'); btn.disabled = false; btn.textContent = 'マイクを試す（3秒録音）'; return; }
+    navigator.mediaDevices.getUserMedia({ audio: true }).then(function(stream){
+      row('mic', OK, 'ok', 'マイクの許可', 'もらえました');
+      var rec, used = '';
+      try { rec = new MediaRecorder(stream); used = rec.mimeType || '(既定)'; }
+      catch (e) { row('mic', NG, 'ng', 'MediaRecorder の作成', e.name + ': ' + e.message);
+                  stream.getTracks().forEach(function(t){ t.stop(); });
+                  btn.disabled = false; btn.textContent = 'マイクを試す（3秒録音）'; return; }
+      var chunks = [];
+      rec.ondataavailable = function(e){ if (e.data && e.data.size) chunks.push(e.data); };
+      rec.onerror = function(e){ row('mic', NG, 'ng', '録音中のエラー', String((e.error && e.error.name) || e)); };
+      rec.onstop = function(){
+        stream.getTracks().forEach(function(t){ t.stop(); });
+        var blob = new Blob(chunks, { type: used });
+        row(blob.size > 1000 ? 'mic' : 'mic', blob.size > 1000 ? OK : NG, blob.size > 1000 ? 'ok' : 'ng',
+            '録音できた大きさ', Math.round(blob.size / 1024) + ' KB / 形式 ' + used);
+        var a = document.getElementById('play');
+        a.src = URL.createObjectURL(blob); a.style.display = 'block';
+        // AudioContext で本当に音が入っているかを見る（無音なら数値がほぼ0）
+        try {
+          var AC = window.AudioContext || window.webkitAudioContext;
+          blob.arrayBuffer().then(function(buf){ return new AC().decodeAudioData(buf); }).then(function(ab){
+            var ch = ab.getChannelData(0), peak = 0;
+            for (var i = 0; i < ch.length; i += 16) { var v = Math.abs(ch[i]); if (v > peak) peak = v; }
+            row('mic', peak > 0.01 ? OK : NG, peak > 0.01 ? 'ok' : 'ng', '音の大きさ（最大）',
+                peak.toFixed(3) + (peak > 0.01 ? '（音が入っています）' : '（無音です。マイクが取れていません）'));
+          }).catch(function(e){ row('mic', NA, 'na', '音の中身の確認', '読めませんでした: ' + e.message); });
+        } catch (e) { row('mic', NA, 'na', '音の中身の確認', 'AudioContext なし'); }
+        btn.disabled = false; btn.textContent = 'もう一度 3秒録音';
+      };
+      btn.textContent = '録音中… 3秒なにか話してください';
+      rec.start();
+      setTimeout(function(){ try { rec.stop(); } catch (e) {} }, 3000);
+    }).catch(function(e){
+      row('mic', NG, 'ng', 'マイクの許可', e.name + ': ' + e.message);
+      btn.disabled = false; btn.textContent = 'マイクを試す（3秒録音）';
+    });
+  });
+
+  // ── 3. 音声認識 ──
+  var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  row('sr', SR ? OK : NG, SR ? 'ok' : 'ng', 'SpeechRecognition',
+      SR ? (window.SpeechRecognition ? 'あります（標準の名前）' : 'あります（webkit の名前）') : 'ありません');
+  document.getElementById('bSr').addEventListener('click', function(){
+    var btn = this;
+    if (!SR) { row('sr', NG, 'ng', '音声認識', 'この開き方では使えません'); return; }
+    btn.disabled = true; btn.textContent = '聞いています… 話してください';
+    var r = new SR(), got = false, t0 = Date.now();
+    r.lang = 'ja-JP'; r.interimResults = true; r.continuous = false;
+    var done = function(mark, cls, key, val){
+      if (btn.disabled) { btn.disabled = false; btn.textContent = 'もう一度 音声認識を試す'; }
+      row('sr', mark, cls, key, val);
+    };
+    r.onresult = function(e){
+      var t = '';
+      for (var i = 0; i < e.results.length; i++) t += e.results[i][0].transcript;
+      if (e.results[e.results.length - 1].isFinal && !got) {
+        got = true;
+        done(OK, 'ok', '聞き取れた文字', '「' + t + '」（' + ((Date.now() - t0) / 1000).toFixed(1) + '秒）');
+      }
+    };
+    r.onerror = function(e){ if (!got) { got = true; done(NG, 'ng', '音声認識のエラー', String(e.error)); } };
+    r.onend = function(){ if (!got) { got = true; done(NG, 'ng', '音声認識', '文字が1つも返りませんでした（ホーム画面のアプリでは起きやすい症状です）'); } };
+    try { r.start(); } catch (e) { got = true; done(NG, 'ng', '音声認識の開始', e.name + ': ' + e.message); }
+    setTimeout(function(){ if (!got) { try { r.stop(); } catch (e) {} } }, 10000);
+  });
+
+  // ── 4. WebGPU ──
+  var hasGPU = !!navigator.gpu;
+  row('gpu', hasGPU ? OK : NG, hasGPU ? 'ok' : 'ng', 'navigator.gpu', hasGPU ? 'あります' : 'ありません（WASM で動かします）');
+  document.getElementById('bGpu').addEventListener('click', function(){
+    var btn = this; btn.disabled = true;
+    if (!hasGPU) { row('gpu', NG, 'ng', 'WebGPU', 'ありません'); btn.disabled = false; return; }
+    navigator.gpu.requestAdapter().then(function(ad){
+      if (!ad) { row('gpu', NG, 'ng', 'アダプタ', '取れませんでした'); btn.disabled = false; return; }
+      var lim = ad.limits || {};
+      row('gpu', OK, 'ok', 'アダプタ', '取れました');
+      row('gpu', NA, 'na', 'バッファの上限',
+          Math.round((lim.maxBufferSize || 0) / 1048576) + ' MB / 1回の確保 ' +
+          Math.round((lim.maxStorageBufferBindingSize || 0) / 1048576) + ' MB');
+      return ad.requestDevice().then(function(){ row('gpu', OK, 'ok', 'デバイス', '作れました'); });
+    }).catch(function(e){ row('gpu', NG, 'ng', 'WebGPU', e.name + ': ' + e.message); })
+      .then(function(){ btn.disabled = false; });
+  });
+
+  // ── 5. コピー ──
+  document.getElementById('bCopy').addEventListener('click', function(){
+    var btn = this, t = '== コンパスヒヤリング 端末判定 ' + new Date().toLocaleString('ja-JP') + ' ==\n' + L.join('\n');
+    var ok = function(){ btn.textContent = 'コピーしました'; setTimeout(function(){ btn.textContent = '結果をコピー'; }, 1600); };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(t).then(ok).catch(function(){ sel(t); });
+    } else sel(t);
+    function sel(x){
+      var ta = document.createElement('textarea');
+      ta.value = x; ta.style.position = 'fixed'; ta.style.opacity = '0';
+      document.body.appendChild(ta); ta.focus(); ta.select();
+      try { document.execCommand('copy'); ok(); } catch (e) { btn.textContent = '下の枠を長押しでコピーしてください'; }
+      ta.remove();
+    }
+  });
+})();
+</script>
+</body>
+</html>
