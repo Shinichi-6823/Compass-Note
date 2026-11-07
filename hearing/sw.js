@@ -13,7 +13,7 @@
 //    この頭で始まるものだけを捨てます。でないと、よそのアプリの
 //    オフライン用の預かり分まで消してしまいます。
 var 頭 = 'compass-hearing-';
-var 版 = 頭 + '2026-11-07d';
+var 版 = 頭 + '2026-11-07e';
 var ファイル = [
   './', './index.html', './app.css', './app.js',
   './fields.js', './extract.js', './inputs.js', './export.js', './loadsize.js',

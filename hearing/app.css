@@ -130,6 +130,20 @@ input.num{text-align:right;font-variant-numeric:tabular-nums}
 .spanrow .tilde{flex:0 0 auto;color:var(--sub)}
 .dimrow input.num{flex:1 1 0;min-width:0;padding:11px 6px;text-align:center}
 .dimrow .times{flex:0 0 auto;font-size:13px;color:var(--sub)}
+/* 郵便番号の横の小さいボタン（住所を入れる） */
+.mini{
+  flex:0 0 auto;min-height:48px;padding:0 14px;white-space:nowrap;
+  font-size:14px;font-weight:600;font-family:inherit;color:#fff;background:var(--accent);
+  border:0;border-radius:10px;cursor:pointer;
+}
+.mini:active{background:var(--accent-d)}
+.mini[disabled]{background:var(--line);color:var(--sub)}
+/* 郵便番号から引いた住所を「入れ替える」で出すとき */
+.readback .cand{
+  margin:6px 0 0;padding:10px 12px;color:var(--text);background:var(--card);
+  border:1.5px solid var(--accent);border-radius:10px;
+}
+
 /* 読み返し（3,000ケース・9時間・≒3億円）。打ち間違いに気づくための行 */
 .readback{margin:5px 0 0;font-size:12px;line-height:1.5;color:var(--sub);min-height:17px}
 

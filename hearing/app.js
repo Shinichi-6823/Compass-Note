@@ -333,26 +333,37 @@
       描く();
     };
     var 日付らしい = function (v) { return !v || /^[0-9]{4}-[0-9]{2}-[0-9]{2}$/.test(v); };
+    var 県らしい = function (v) { return !v || F.prefs.indexOf(v) >= 0; };
+    //  その欄の形に収まるか。収まらなければ「文で書く」へ落とす（捨てない）
+    var 読める = function (v) {
+      if (f.kind === 'date') return { ok: 日付らしい(v) };
+      if (f.kind === 'pref') return { ok: 県らしい(v) };
+      if (f.kind === 'addr') return { ok: true };       // 住所はもともと文字
+      return INPUTS.読み取る(f.kind, v);
+    };
 
     function 描く() {
       箱.textContent = '';
       var v = str(S.rec.data[id]);
-      var 部 = f.kind === 'date' ? { ok: 日付らしい(v) } : INPUTS.読み取る(f.kind, v);
+      var 部 = 読める(v);
       if (!部.ok) 文で = true;                          // 収まらない文字が入っている
-      切替.textContent = 文で ? '⌨ 数字で' : '✎ 文で';
-      切替.setAttribute('aria-label', 文で ? '数字の箱に戻す' : '範囲や注記を文で書く');
+      切替.classList.toggle('hide', f.kind === 'addr');  // 住所に逃げ道はいらない
+      切替.textContent = 文で ? (f.kind === 'pref' || f.kind === 'date' ? '⌨ 選ぶ' : '⌨ 数字で') : '✎ 文で';
+      切替.setAttribute('aria-label', 文で ? 'もとの入れ方に戻す' : '当てはまらないことを文で書く');
       if (文で) return 文の箱(f, 箱, inputId);
       if (f.kind === 'num') return 数の箱(f, 箱, inputId, 部, 文にする);
       if (f.kind === 'span') return 時間の箱(f, 箱, inputId, 部);
       if (f.kind === 'dim') return 寸法の箱(f, 箱, inputId, 部, 文にする);
+      if (f.kind === 'pref') return 県の箱(f, 箱, inputId);
+      if (f.kind === 'addr') return 住所の箱(f, 箱, inputId);
       return 日付の箱(f, 箱, inputId);
     }
 
     切替.addEventListener('click', function () {
       if (文で) {
-        var v = str(S.rec.data[id]);
-        var 戻せる = f.kind === 'date' ? 日付らしい(v) : INPUTS.読み取る(f.kind, v).ok;
-        if (!戻せる) { toast('いまの文字は数字の箱に入りません。消してから切り替えてください'); return; }
+        if (!読める(str(S.rec.data[id])).ok) {
+          toast('いまの文字はもとの入れ方に収まりません。消してから切り替えてください'); return;
+        }
         文で = false;
       } else { 文で = true; }
       描く();
@@ -366,7 +377,8 @@
   function 文の箱(f, 箱, inputId) {
     var inp = el('input'); inp.id = inputId; inp.type = 'text';
     inp.value = str(S.rec.data[f.id]);
-    inp.placeholder = f.kind === 'date' ? '例）11月中' :
+    inp.placeholder = f.kind === 'pref' ? '例）オンライン（Teams）' :
+      f.kind === 'date' ? '例）11月中' :
       f.kind === 'span' ? '例）8時〜17時（2交替）' :
         f.kind === 'dim' ? '例）600×400（高さは聞けず）' : '例）3000〜5000';
     inp.addEventListener('input', function () { S.rec.data[f.id] = inp.value; 汚れた(); });
@@ -526,6 +538,102 @@
       読み.textContent = v ? v + (f.そえ || '') : '聞けたところまででかまいません（W だけ・W×L だけ）。';
     }
     見せる();
+  }
+
+  /** 県名を47から選ぶ（打合せ場所。オンラインなどは「✎ 文で」） */
+  function 県の箱(f, 箱, inputId) {
+    var sel = el('select'); sel.id = inputId;
+    var v = str(S.rec.data[f.id]);
+    [''].concat(F.prefs).forEach(function (o) {
+      var op = el('option', null, o || '（選んでください）');
+      op.value = o; if (o === v) op.selected = true;
+      sel.appendChild(op);
+    });
+    sel.addEventListener('change', function () { S.rec.data[f.id] = sel.value; 汚れた(); });
+    箱.appendChild(sel);
+  }
+
+  /* 住所（納地）。
+   *   ★郵便番号7桁 → 住所。コンパス（detail.js の fillFromZip）と同じ zipcloud を使います。
+   *     キーは要りません。外へ出るのは7桁の数字だけで、社名も住所も送りません。
+   *     押したときだけ動きます（打つたびには送りません）。オフラインなら手で書けます。
+   *   ★地図は「開くだけ」。ページの中に地図を埋めるとAPIキーが要り、
+   *     公開リポジトリに鍵を置くことになります。コンパスも同じ理由で同じ作りです。
+   */
+  function 住所の箱(f, 箱, inputId) {
+    var id = f.id;
+
+    //  ① 郵便番号（この欄は控えません。住所を引くための道具です）
+    var row = el('div', 'numrow');
+    var zip = el('input'); zip.type = 'text'; zip.className = 'num';
+    zip.inputMode = 'numeric';                         // ★ここも数字キーボード
+    zip.autocomplete = 'off';
+    zip.setAttribute('enterkeyhint', 'search');
+    zip.placeholder = '郵便番号（7桁）';
+    zip.setAttribute('aria-label', '郵便番号7桁');
+    var go = el('button', 'mini', '住所を入れる'); go.type = 'button';
+    row.appendChild(zip); row.appendChild(go);
+    箱.appendChild(row);
+
+    var 知らせ = el('div', 'readback');
+    箱.appendChild(知らせ);
+
+    //  ② 住所そのもの（コンパスへは、この文字がそのまま入ります）
+    var inp = el('input'); inp.id = inputId; inp.type = 'text';
+    inp.value = str(S.rec.data[id]);
+    inp.placeholder = '例）東京都調布市布田1-2-3';
+    inp.addEventListener('input', function () { S.rec.data[id] = inp.value; 汚れた(); 地図を出す(); });
+    箱.appendChild(inp);
+
+    //  ③ 地図で開く（押したときだけ。Googleマップの画面へ行きます）
+    var 地図 = el('button', 'btn sub', '🗺 Googleマップで開く');
+    地図.type = 'button';
+    地図.style.margin = '8px 0 0';
+    地図.addEventListener('click', function () {
+      var q = inp.value.trim();
+      if (!q) { toast('先に住所か郵便番号を入れてください'); return; }
+      window.open('https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(q), '_blank');
+    });
+    箱.appendChild(地図);
+    function 地図を出す() { 地図.classList.toggle('hide', !inp.value.trim()); }
+    地図を出す();
+
+    //  郵便番号から引く
+    function 引く() {
+      var z = INPUTS.ならす(zip.value).replace(/[^0-9]/g, function () { return ''; });
+      if (z.length !== 7) { 知らせ.textContent = '郵便番号は7桁で入れてください。'; return; }
+      知らせ.textContent = '郵便番号から住所を調べています…';
+      go.disabled = true;
+      fetch('https://zipcloud.ibsnet.co.jp/api/search?zipcode=' + z).then(function (r) {
+        return r.json();
+      }).then(function (j) {
+        var a = j && j.results && j.results[0];
+        if (!a) { 知らせ.textContent = 'その郵便番号の住所が見つかりませんでした。'; return; }
+        var 住所 = str(a.address1) + str(a.address2) + str(a.address3);
+        if (!inp.value.trim()) {                       // 空なら、そのまま入れる
+          inp.value = 住所; S.rec.data[id] = 住所; 汚れた(); 地図を出す();
+          知らせ.textContent = '入れました: ' + 住所 + '（番地はこのあと足してください）';
+          return;
+        }
+        //  ★すでに書いてあるものは、黙って入れ替えない（押したときだけ差し替える）
+        知らせ.textContent = '';
+        var 候 = el('div', 'cand');
+        var b = el('div', 'c-body');
+        b.appendChild(el('div', 'c-lab', '郵便番号から'));
+        b.appendChild(el('div', 'c-val', 住所));
+        var 使う = el('button', null, '入れ替える'); 使う.type = 'button';
+        使う.addEventListener('click', function () {
+          inp.value = 住所; S.rec.data[id] = 住所; 汚れた(); 地図を出す();
+          知らせ.textContent = '入れ替えました: ' + 住所;
+        });
+        候.appendChild(b); 候.appendChild(使う);
+        知らせ.appendChild(候);
+      }).catch(function () {
+        知らせ.textContent = 'オフラインか、社内から外に出られないようです。住所は手で書けます。';
+      }).then(function () { go.disabled = false; });
+    }
+    go.addEventListener('click', 引く);
+    zip.addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); 引く(); } });
   }
 
   function 伸ばす(ta) {
