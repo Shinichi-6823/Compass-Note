@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>コンパスヒヤリング</title>
+<meta name="description" content="打合せ後のヒヤリング内容を、スマホで入力してまとめる道具。入力した内容はこの端末の中だけに保存します。">
+<meta name="theme-color" content="#1f5f9e" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#14171c" media="(prefers-color-scheme: dark)">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="ヒヤリング">
+<link rel="manifest" href="./manifest.webmanifest">
+<link rel="apple-touch-icon" href="./icon-180.png">
+<link rel="icon" href="./icon-192.png">
+<link rel="stylesheet" href="./app.css">
+</head>
+<body>
+
+<header class="top">
+  <div class="line1">
+    <button class="iconbtn hide" id="top-left" type="button">一覧</button>
+    <h1 id="top-title">コンパスヒヤリング</h1>
+    <button class="iconbtn hide" id="top-right" type="button">ぜんぶ</button>
+  </div>
+  <p class="sub" id="top-sub"></p>
+  <div class="dots hide" id="dots"></div>
+</header>
+
+<main>
+  <!-- ① 一覧 -->
+  <section id="v-list">
+    <div id="list"></div>
+    <button class="btn sub" id="b-csv-all" type="button" style="margin-top:14px">📊 ぜんぶを1つのCSVにする（台帳用）</button>
+  </section>
+
+  <!-- ② 入力 -->
+  <section id="v-edit" class="hide">
+    <div id="form"></div>
+  </section>
+
+  <!-- ③ 出力 -->
+  <section id="v-out" class="hide">
+    <p class="note" id="out-sum"></p>
+
+    <button class="btn" id="b-json" type="button">🔗 JSON（コンパスに取り込む）</button>
+    <p class="note">コンパスの 案件管理 ＞ ヒアリング ＞「JSONを読み込む」で、そのまま読めます。
+      つながっている欄（社名・納地・稼働予定など）は、コンパスで保存したときに基本情報・建屋情報へ書き戻されます。</p>
+
+    <button class="btn" id="b-copy" type="button">📋 テキストをコピー（メール・Teams 用）</button>
+    <button class="btn sub" id="b-show" type="button">文を画面に出す</button>
+    <pre id="out-text" class="hide" style="white-space:pre-wrap;word-break:break-word;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px;font-size:13px;line-height:1.7;-webkit-user-select:text;user-select:text"></pre>
+
+    <button class="btn sub" id="b-pdf" type="button" style="margin-top:18px">📄 PDFにする（印刷 → PDFに保存）</button>
+    <p class="note">印刷の画面が出たら、送信先を「PDFに保存」にしてください。
+      <b>ホーム画面のアプリで何も出ないときは</b>、同じURLを Safari で開いて、共有 → プリント からどうぞ。</p>
+
+    <button class="btn sub" id="b-csv" type="button">📊 CSV（この1件・台帳用）</button>
+    <p class="note">列はコンパスの <b>Hearing.csv</b> と同じ順です。Excel でそのまま開けます。
+      ※コンパスにはCSVの取り込み口が無いので、取り込みは上の JSON を使ってください。</p>
+
+    <button class="btn sub" id="b-back" type="button" style="margin-top:18px">一覧へ戻る</button>
+  </section>
+</main>
+
+<!-- 下の帯（画面ごとに中身が変わる） -->
+<div class="bar" id="bar-list">
+  <button class="btn" id="b-new" type="button">＋ 新しく聞いた内容を入れる</button>
+</div>
+<div class="bar hide" id="bar-edit">
+  <button class="btn sub prev" id="b-prev" type="button">← 戻る</button>
+  <button class="btn" id="b-next" type="button">次へ →</button>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<!-- 印刷（PDF）のときだけ出る中身。ふだんは見えない -->
+<div id="print" class="printonly" aria-hidden="true"></div>
+
+<script src="./loadsize.js"></script>
+<script src="./fields.js"></script>
+<script src="./extract.js"></script>
+<script src="./inputs.js"></script>
+<script src="./export.js"></script>
+<script src="./app.js"></script>
+<script>
+  /* 下の帯は画面に合わせて出し分ける（app.js の描画のあとに合わせる） */
+  (function () {
+    'use strict';
+    var sync = function () {
+      var edit = !document.getElementById('v-edit').classList.contains('hide');
+      var out = !document.getElementById('v-out').classList.contains('hide');
+      document.getElementById('bar-list').classList.toggle('hide', edit || out);
+      document.getElementById('bar-edit').classList.toggle('hide', !edit);
+      document.body.style.setProperty('--bar', out ? '0px' : '72px');
+    };
+    new MutationObserver(sync).observe(document.querySelector('main'),
+      { attributes: true, attributeFilter: ['class'], subtree: true });
+    sync();
+  })();
+</script>
+</body>
+</html>

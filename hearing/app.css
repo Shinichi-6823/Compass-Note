@@ -1,0 +1,224 @@
+/* app.css ― コンパスヒヤリング
+ *   iPhone SE（375×667）を基準に作っています。
+ *   ★入力欄は高さ48px以上・文字16px（iOS は16px未満だと、触ったときに画面が勝手に拡大します）
+ *   色はコンパスの :root に合わせています（--cp-accent #1f5f9e ほか）
+ */
+:root{
+  /* 時計・カレンダーの出し物（iOS が描く部分）を画面の明暗に合わせる */
+  color-scheme:light dark;
+
+  --bg:#f4f6f9; --card:#fff; --text:#2b3038; --sub:#5f6875; --line:#d2d8e0; --line2:#e9ecf1;
+  --accent:#1f5f9e; --accent-d:#174a7c; --ok:#1d7a44; --warn:#a06a00; --ng:#c0392b;
+  --pre:#2f7d7d; --z0:#9b5276; --hard:#3d6fa6;
+  --bar:72px;                                   /* 下の帯の高さ */
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#14171c; --card:#1d2127; --text:#e8ebef; --sub:#9aa3b0; --line:#333a44; --line2:#262c34;
+    --accent:#6fa8dc; --accent-d:#8dbce6; --ok:#4fc17e; --warn:#d9b65a; --ng:#ef7a6c;
+    --pre:#6fbdbd; --z0:#d690b0; --hard:#8fb8e0;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#14171c; --card:#1d2127; --text:#e8ebef; --sub:#9aa3b0; --line:#333a44; --line2:#262c34;
+  --accent:#6fa8dc; --accent-d:#8dbce6; --ok:#4fc17e; --warn:#d9b65a; --ng:#ef7a6c;
+}
+
+*{box-sizing:border-box;-webkit-text-size-adjust:100%;-webkit-tap-highlight-color:transparent}
+html,body{height:100%}
+body{
+  margin:0;background:var(--bg);color:var(--text);
+  font:16px/1.65 -apple-system,BlinkMacSystemFont,"Hiragino Sans","Noto Sans JP",sans-serif;
+  overscroll-behavior-y:none;
+}
+.hide{display:none !important}
+
+/* ── 上の帯 ───────────────────────────────── */
+.top{
+  position:sticky;top:0;z-index:20;background:var(--card);
+  border-bottom:1px solid var(--line);
+  padding:calc(env(safe-area-inset-top) + 10px) 16px 10px;
+}
+.top .line1{display:flex;align-items:center;gap:10px;min-height:32px}
+.top h1{font-size:17px;margin:0;font-weight:700;flex:1 1 auto;min-width:0;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.top .sub{font-size:12px;color:var(--sub);margin:2px 0 0}
+.iconbtn{
+  /* ★幅は決め打ちにしない。「ぜんぶ」の3文字が 44px で2行に折り返していました */
+  flex:0 0 auto;min-width:44px;height:44px;padding:0 8px;margin:-6px;
+  border:0;background:transparent;white-space:nowrap;
+  color:var(--accent);font-size:15px;font-family:inherit;font-weight:600;
+  border-radius:10px;cursor:pointer;
+}
+.iconbtn:active{background:var(--line2)}
+
+/* 進み具合の点 */
+.dots{display:flex;gap:5px;margin:9px 0 0;align-items:center}
+.dots i{flex:1 1 0;height:4px;border-radius:2px;background:var(--line);transition:background .15s}
+.dots i.on{background:var(--accent)}
+.dots i.done{background:var(--ok)}
+
+/* ── 本文 ───────────────────────────────── */
+main{padding:14px 16px calc(var(--bar) + env(safe-area-inset-bottom) + 24px)}
+
+/* ── 一覧 ───────────────────────────────── */
+.card{
+  background:var(--card);border:1px solid var(--line);border-radius:12px;
+  padding:14px;margin:0 0 10px;display:flex;gap:12px;align-items:center;cursor:pointer;
+}
+.card:active{background:var(--line2)}
+.card .body{flex:1 1 auto;min-width:0}
+.card .ttl{font-weight:700;font-size:16px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.card .meta{font-size:12.5px;color:var(--sub);margin-top:3px}
+.card .gauge{height:5px;border-radius:3px;background:var(--line2);margin-top:8px;overflow:hidden}
+.card .gauge span{display:block;height:100%;background:var(--accent);border-radius:3px}
+.card .del{
+  flex:0 0 auto;width:44px;height:44px;border:0;background:transparent;color:var(--sub);
+  font-size:20px;border-radius:10px;cursor:pointer;
+}
+.card .del:active{background:var(--line2);color:var(--ng)}
+.empty{text-align:center;color:var(--sub);padding:48px 16px;font-size:14px;line-height:2}
+
+/* ── 欄 ───────────────────────────────── */
+.fld{margin:0 0 18px}
+.fld > label,.fld .lab{display:flow-root;font-size:14px;font-weight:600;margin:0 0 6px;line-height:1.45}
+.star{font-size:11px;color:var(--warn);margin-left:5px;letter-spacing:-1px}
+.kind{
+  display:inline-block;font-size:10px;font-weight:600;padding:1px 6px;border-radius:999px;
+  margin-left:6px;vertical-align:1.5px;border:1px solid currentColor;
+}
+.k-pre{color:var(--pre)} .k-z0{color:var(--z0)} .k-hard{color:var(--hard)}
+
+input[type=text],input[type=date],input[type=time],textarea,select{
+  width:100%;min-height:48px;padding:11px 12px;font-size:16px;font-family:inherit;line-height:1.5;
+  color:var(--text);background:var(--card);border:1.5px solid var(--line);border-radius:9px;
+  -webkit-appearance:none;appearance:none;
+}
+input:focus,textarea:focus,select:focus{outline:0;border-color:var(--accent);box-shadow:0 0 0 3px rgba(31,95,158,.14)}
+textarea{min-height:96px;resize:none;overflow:hidden}
+/* ★メモは 210px にしていましたが、実機の中身の高さは 461px しかないので
+   「拾う」ボタンが画面の外に出ていました。打てば自動で伸びます */
+textarea.memo{min-height:150px}
+select{background-image:linear-gradient(45deg,transparent 50%,var(--sub) 50%),linear-gradient(135deg,var(--sub) 50%,transparent 50%);
+  background-position:calc(100% - 20px) 22px,calc(100% - 14px) 22px;background-size:6px 6px;background-repeat:no-repeat;padding-right:38px}
+
+/* 札（選択・チェック） */
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{
+  min-height:44px;padding:9px 15px;font-size:15px;font-family:inherit;line-height:1.4;
+  color:var(--text);background:var(--card);border:1.5px solid var(--line);border-radius:999px;cursor:pointer;
+}
+.chip[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:600}
+
+/* ── 数・時間・寸法の入れ方 ─────────────────────────
+   ★数字の欄は inputmode で数字のキーボードを出すので、かな変換がいりません。
+   ★「✎ 文で」は、範囲（3000〜5000）や「11月中」のような言い方を預かる逃げ道。
+     見出しの右肩に小さく置き、::after で押せる範囲だけ広げています。 */
+.fld .pen{
+  float:right;position:relative;min-height:32px;padding:6px 11px;
+  font-size:12.5px;font-weight:600;font-family:inherit;color:var(--accent);
+  background:transparent;border:1px solid var(--line2);border-radius:999px;cursor:pointer;
+}
+.fld .pen::after{content:'';position:absolute;inset:-8px -6px}
+.fld .pen:active{background:var(--line2)}
+.numrow,.spanrow,.dimrow{display:flex;gap:8px;align-items:center}
+input.num{text-align:right;font-variant-numeric:tabular-nums}
+.numrow input.num{flex:1 1 0;min-width:0}
+.numrow .unitsel{flex:0 0 auto;width:auto;min-width:116px}
+.numrow .unit,.dimrow .unit{flex:0 0 auto;font-size:14px;font-weight:600;color:var(--sub)}
+.spanrow input[type=time]{flex:1 1 0;min-width:0;text-align:center}
+.spanrow .tilde{flex:0 0 auto;color:var(--sub)}
+.dimrow input.num{flex:1 1 0;min-width:0;padding:11px 6px;text-align:center}
+.dimrow .times{flex:0 0 auto;font-size:13px;color:var(--sub)}
+/* 読み返し（3,000ケース・9時間・≒3億円）。打ち間違いに気づくための行 */
+.readback{margin:5px 0 0;font-size:12px;line-height:1.5;color:var(--sub);min-height:17px}
+
+/* ── アクションの表 ───────────────────────── */
+.act{border:1px solid var(--line);border-radius:11px;padding:12px;margin:0 0 10px;background:var(--card)}
+.act .r{display:flex;gap:8px;align-items:center;margin:0 0 8px}
+.act .r:last-child{margin:0}
+.act .r > *{flex:1 1 0;min-width:0}
+.act .x{flex:0 0 44px;height:44px;border:0;background:transparent;color:var(--sub);font-size:19px;border-radius:9px;cursor:pointer}
+.act .x:active{background:var(--line2);color:var(--ng)}
+
+/* ── 候補（メモから拾ったもの） ──────────────── */
+.cands{border:1.5px solid var(--accent);border-radius:12px;overflow:hidden;margin:14px 0 0;background:var(--card)}
+.cands h3{margin:0;padding:11px 14px;font-size:14px;background:var(--accent);color:#fff}
+.cand{display:flex;gap:10px;align-items:center;padding:11px 14px;border-top:1px solid var(--line2)}
+.cand:first-of-type{border-top:0}
+.cand .c-body{flex:1 1 auto;min-width:0}
+.cand .c-lab{font-size:12px;color:var(--sub)}
+.cand .c-val{font-size:15px;font-weight:600;word-break:break-word}
+.cand .c-src{font-size:11px;color:var(--sub);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cand button{flex:0 0 auto;min-height:44px;padding:9px 16px;font-size:14px;font-weight:600;font-family:inherit;
+  color:#fff;background:var(--accent);border:0;border-radius:9px;cursor:pointer}
+.cand button[disabled]{background:var(--line);color:var(--sub)}
+
+/* ── ボタン ───────────────────────────────── */
+.btn{
+  display:block;width:100%;min-height:52px;padding:13px;margin:0 0 10px;
+  font-size:16px;font-weight:700;font-family:inherit;color:#fff;background:var(--accent);
+  border:0;border-radius:11px;cursor:pointer;-webkit-appearance:none;text-align:center;
+}
+.btn:active{background:var(--accent-d)}
+.btn.sub{background:transparent;color:var(--accent);border:1.5px solid var(--accent)}
+.btn.sub:active{background:var(--line2)}
+.btn.warn{background:transparent;color:var(--ng);border:1.5px solid var(--ng)}
+.btn[disabled]{opacity:.45}
+
+/* ── 下の帯 ───────────────────────────────── */
+.bar{
+  /* ★キーボードが開くと、position:fixed の帯は**キーボードの裏**に回ります（iOS）。
+     そこで --kb（キーボードの高さ）だけ持ち上げます。app.js の visualViewport の見張りが入れます。
+     実機は iPhone SE で縦 549px しかなく、キーボードが出ると 250px ほどになります。 */
+  position:fixed;left:0;right:0;bottom:var(--kb,0px);z-index:20;display:flex;gap:10px;
+  padding:10px 16px calc(10px + env(safe-area-inset-bottom));
+  background:var(--card);border-top:1px solid var(--line);
+  transition:bottom .12s;
+}
+/* キーボードが出ている間は、下の余白を詰める（帯が上がったぶん） */
+body.kb .bar{padding-bottom:10px}
+.bar .btn{margin:0;flex:1 1 0}
+.bar .btn.prev{flex:0 0 36%}
+
+/* ── 知らせ ───────────────────────────────── */
+.toast{
+  /* 帯と同じで、キーボードが出たら持ち上げる（--kb） */
+  position:fixed;left:50%;bottom:calc(var(--kb,0px) + var(--bar) + env(safe-area-inset-bottom) + 14px);
+  transform:translateX(-50%) translateY(8px);z-index:40;
+  max-width:88vw;padding:11px 18px;border-radius:999px;
+  background:rgba(20,23,28,.94);color:#fff;font-size:14px;font-weight:600;
+  opacity:0;pointer-events:none;transition:opacity .18s,transform .18s;
+}
+.toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+
+.note{font-size:12.5px;color:var(--sub);line-height:1.7;margin:0 0 14px}
+
+/* ── 印刷（PDF は「印刷 → PDFに保存」で作る） ───────────────
+   ★自前でPDFを書くと日本語フォントの埋め込み（数MB）が要ります。
+     コンパスの frame.print.js も同じ理由でブラウザの印刷を使っています。 */
+.printonly{display:none}
+@media print{
+  /* 画面のものは全部消して、印刷用の中身だけ出す */
+  body > *{display:none !important}
+  body > #print.printonly{display:block !important}
+  @page{size:A4 portrait;margin:14mm 12mm}
+  html,body{background:#fff !important;color:#000 !important;font-size:10.5pt;margin:0}
+  #print{font-family:"Hiragino Mincho ProN","Hiragino Sans",serif;line-height:1.6}
+  .pr-head{border-bottom:1.6pt solid #000;padding-bottom:5pt;margin-bottom:10pt}
+  .pr-ttl{font-size:9pt;letter-spacing:.3em;color:#444}
+  .pr-name{font-size:16pt;font-weight:700;margin:2pt 0 3pt}
+  .pr-sub{font-size:9pt;color:#333}
+  .pr-sect{font-size:10pt;font-weight:700;margin:11pt 0 3pt;padding:2pt 5pt;
+    background:#eee;border-left:3pt solid #555;break-after:avoid;page-break-after:avoid}
+  .pr-tbl{width:100%;border-collapse:collapse;font-size:9.5pt}
+  .pr-tbl th,.pr-tbl td{border:.5pt solid #999;padding:3pt 5pt;text-align:left;
+    vertical-align:top;break-inside:avoid;page-break-inside:avoid}
+  .pr-tbl th{width:34%;background:#f6f6f6;font-weight:600}
+  .pr-act th{width:auto;background:#f6f6f6}
+  .pr-act td:nth-child(2),.pr-act td:nth-child(3){width:17%;white-space:nowrap}
+  .pr-memo{font-size:9pt;border:.5pt solid #999;padding:5pt;white-space:normal}
+}
+.sect{font-size:13px;font-weight:700;color:var(--accent);margin:22px 0 10px;
+  padding-bottom:6px;border-bottom:1px solid var(--line)}
+.sect:first-child{margin-top:0}
