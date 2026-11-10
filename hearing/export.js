@@ -29,6 +29,9 @@
     return str(v).trim();
   }
 
+  /** 欄の値。社内版の「1回の答えで両方が埋まる欄」（fields.js の derive）は 0次の答えで決まった値 */
+  function 値(id, d) { return F().value ? F().value(id, d) : (d || {})[id]; }
+
   /** 案件キー＝物件番号。無ければ案件名（コンパスの決めごと。0次提案は案件名） */
   function キー(rec) {
     var d = rec.data || {};
@@ -46,12 +49,16 @@
    */
   function json(rec, opt) {
     opt = opt || {};
-    var d = rec.data || {}, o = {};
+    var d = rec.data || {}, o = {}, scr = {}, nScr = 0;
     F().all.forEach(function (f) {
-      var v = d[f.id];
-      if (Array.isArray(v)) { if (v.length) o[f.id] = v.slice(); return; }
-      if (str(v).trim()) o[f.id] = str(v).trim();
+      var v = 値(f.id, d);            // 社内版の derive の欄は 0次の答えで決まった値
+      //  社内版の取捨選択の欄（src:'screening'・id は「取捨:」＋列名）は「取捨選択」へ Screening.csv の列名で
+      //  （ヒアリングと同じ名前の欄＝建屋図面・提案範囲 があるので、上の段には混ぜない）
+      var to = f.src === 'screening' ? scr : o, k = f.src === 'screening' ? (f.col || f.id) : f.id;
+      if (Array.isArray(v)) { if (v.length) { to[k] = v.slice(); if (to === scr) nScr++; } return; }
+      if (str(v).trim()) { to[k] = str(v).trim(); if (to === scr) nScr++; }
     });
+    if (nScr) o.取捨選択 = scr;
     o.actions = (rec.actions || []).filter(function (a) { return str(a.action).trim(); })
       .map(function (a) {
         return {
@@ -61,6 +68,13 @@
       });
     //  ★コンパスが見ない独自キー。コンパスノートへ渡すぶん
     if (opt.メモを入れる !== false && str(rec.memo).trim()) o._メモ = str(rec.memo).trim();
+    //  打合せメモは議事録として渡す（2026-11-09。コンパスの「JSONを読み込む」が「議事録に入れる（1件）」を出す＝hearing.js の minutesOf の形）
+    //  ★_メモ だけだとコンパスは読まない（知らないキー）ので、メモが取り込みで消えていた
+    if (opt.メモを入れる !== false && str(rec.memo).trim()) {
+      var 日 = str(d['訪問日']).trim() || str(rec.更新).slice(0, 10);
+      o.minutes = [{ 議事日付: /^\d{4}-\d{2}-\d{2}$/.test(日) ? 日 : '', 件名: 'ヒヤリング（コンパスヒヤリング）' + (str(d['物件名称']).trim() ? '　' + str(d['物件名称']).trim() : ''),
+        議事場所: str(d['打合せ場所']).trim(), 議事内容: str(rec.memo).trim() }];
+    }
     o._出どころ = 'コンパスヒヤリング';
     o._書き出し日時 = str(rec.更新);
     o._schema = 'okamura-hearing/1';
@@ -133,7 +147,7 @@
       var 行 = [];
       s.ids.forEach(function (id) {
         if (id === '物件名称' || id === '訪問日' || id === '社名') return;   // 頭に出している
-        var f = F().get(id), t = 文字に(d[id]);
+        var f = F().get(id), t = 文字に(値(id, d));
         if (!t) return;
         行.push('<tr><th>' + esc(f ? f.label : id) + '</th><td>' + esc(t).replace(/\n/g, function () { return '<br>'; }) + '</td></tr>');
       });

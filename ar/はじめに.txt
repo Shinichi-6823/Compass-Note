@@ -1,0 +1,24 @@
+﻿コンパスAR（GitHub Pages に置くもの）
+
+Matelier 3D で書き出した OBJ（zip）を、スマホのカメラ越しに置いて見る道具です。
+
+■ 上げ方
+  この「ar」フォルダを、GitHub のリポジトリ（コンパスノートと同じもの）のいちばん上へ、フォルダごとドラッグして上げてください
+  （Add file → Upload files に ar フォルダを落とす）。中の vendor フォルダもそのまま。
+  開く URL は  https://<アカウント名>.github.io/<リポジトリ名>/ar/
+  作り直したら、ar フォルダをまるごと上げ直してください（sw.js の中の版が変わると、スマホの古い版が入れ替わります）。
+
+■ 使い方
+  iPhone・iPad … Safari で開く（AR Quick Look）。Teams・SharePoint・OneDrive アプリの中の画面では AR が開きません。
+  Android     … Chrome で開く（WebXR。Google Play 開発者サービス（AR）の入った端末）。
+  ① ファイルを選ぶ → 「ファイルを選択」→ 場所の「OneDrive」→ Matelier の zip（Matelier3D_日付.zip）をそのまま選ぶ
+     （.obj と .mtl を一緒に選んでも、.glb でも可）
+  ② 形と大きさを確かめる（単位は OBJ の頭の書き込みから mm／m を読みます）
+  ③ 置く大きさ（原寸・机の上・1/10・1/50・1/100）
+  ④ ARで見る
+
+■ 外への通信
+  ありません。選んだファイルの読み込みも、iPhone 用の USDZ への変換も、スマホの中だけで行います。
+  GitHub に上がるのはアプリの画面と three.js だけで、3D のデータは上がりません。
+
+このファイル（はじめに.txt）は上げなくてもかまいません。

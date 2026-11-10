@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>コンパスAR</title>
+<meta name="description" content="Matelier 3D で作った OBJ を、スマホのカメラ越しに原寸や縮小で置いて見る道具。選んだファイルはこの端末の中だけで読みます。">
+<meta name="theme-color" content="#092162">
+<meta name="apple-mobile-web-app-title" content="コンパスAR">
+<!-- ★ apple-mobile-web-app-capable は書かない：ホーム画面のアプリ（Safari の外）から AR Quick Look が開く保証が無いので、
+     ホーム画面から開いても Safari で開くようにしておく（manifest の display も browser） -->
+<link rel="manifest" href="./manifest.webmanifest">
+<link rel="apple-touch-icon" href="./icon-180.png">
+<link rel="icon" href="./icon-192.png">
+<link rel="stylesheet" href="./app.css">
+<script type="importmap">{ "imports": { "three": "./vendor/three.module.min.js" } }</script>
+</head>
+<body>
+
+<header class="top">
+  <div class="line1">
+    <svg class="cpmark" viewBox="0 0 64 64" aria-hidden="true" focusable="false"><path d="M50.1 17.8A23 23 0 1 0 50.1 46.2" fill="none" stroke="#FFFFFF" stroke-width="7" stroke-linecap="round"/><path d="M60 32L33 26.5 33 37.5Z" fill="#E0457B"/><path d="M19 32L33 26.5 33 37.5Z" fill="#7BA7E8"/><circle cx="33" cy="32" r="2.6" fill="#092162"/></svg>
+    <h1>コンパスAR</h1>
+  </div>
+  <p class="sub">Matelier 3D の形を、カメラ越しに置いて見る</p>
+</header>
+
+<main>
+  <!-- ① 選ぶ -->
+  <section class="step" id="s-pick">
+    <h2><span class="no">1</span>3Dファイルを選ぶ</h2>
+    <label class="btn" for="file" id="b-pick">📂 ファイルを選ぶ</label>
+    <!-- ★ accept は付けない：iPhone は .obj・.mtl の種類を知らず、付けると灰色で選べなくなる -->
+    <input type="file" id="file" multiple class="vh">
+    <p class="note">［ファイルを選択］→ 場所の一覧の <b>OneDrive</b> から。Matelier の「OBJ書き出し」の <b>zip をそのまま</b>選べます（.obj と .mtl を一緒に選んでも、.glb でも）。</p>
+    <details class="help">
+      <summary>OneDrive・SharePoint のファイルが出てこないとき</summary>
+      <ol>
+        <li><b>OneDrive アプリ</b>を入れて会社のアカウントでサインインすると、「ファイルを選択」の場所に「OneDrive - 会社名」が出ます（iPhone はファイルアプリの「場所」、Android は左上の ≡）。</li>
+        <li><b>SharePoint のフォルダ</b>は、ブラウザーか OneDrive アプリで そのフォルダの ⋯ →「<b>マイ ファイルへのショートカットを追加</b>」をすると、OneDrive の中に出てきます。</li>
+        <li>それでも出ないときは、OneDrive・SharePoint アプリでファイルの ⋯ →「ダウンロード」（iPhone は「<b>"ファイル"に保存</b>」）で端末に置いてから選んでください。</li>
+        <li>複数のファイルをいっしょに選ぶ：iPhone は右上の「選択」を押してから、Android は長押しで。</li>
+      </ol>
+    </details>
+  </section>
+
+  <div id="msg" class="msg hide" role="status" aria-live="polite"></div>
+
+  <!-- ② 形を確かめる -->
+  <section class="step hide" id="s-view">
+    <h2><span class="no">2</span>形を確かめる</h2>
+    <div class="stage" id="stage">
+      <canvas id="cv"></canvas>
+      <button class="chip home" id="b-home" type="button">全体</button>
+    </div>
+    <dl class="facts" id="facts"></dl>
+    <ul class="notes" id="notes"></ul>
+    <div class="row">
+      <span class="lbl">ファイルの単位</span>
+      <div class="seg" id="seg-unit" role="group" aria-label="ファイルの単位">
+        <button type="button" data-v="mm">mm</button><button type="button" data-v="m">m</button>
+      </div>
+      <button class="chip" id="b-up" type="button" title="Z が上のファイル（ほかの CAD）を起こします">⤾ 上下を直す</button>
+    </div>
+  </section>
+
+  <!-- ③ 大きさ -->
+  <section class="step hide" id="s-scale">
+    <h2><span class="no">3</span>置く大きさ</h2>
+    <div class="seg wide" id="seg-scale" role="group" aria-label="置く大きさ"></div>
+    <p class="note" id="scale-note"></p>
+  </section>
+
+  <!-- ④ AR -->
+  <section class="step hide" id="s-ar">
+    <h2><span class="no">4</span>ARで見る</h2>
+    <button class="btn big" id="b-ar" type="button" disabled>📱 ARで見る</button>
+    <p class="note" id="ar-note"></p>
+    <button class="btn sub" id="b-usdz" type="button">⬇ USDZ を保存（iPhone の AR 用の形）</button>
+    <p class="note">USDZ は iPhone の「ファイル」アプリで開くと、そのまま AR で置けます。パソコンで作って OneDrive に置き、現場で開く使い方もできます。</p>
+  </section>
+
+  <p class="note center foot">版 v2026.11.09<br>選んだファイルはこの端末の中だけで読みます（どこへも送りません）</p>
+</main>
+
+<!-- Android（WebXR）の AR 中に重ねる操作。iPhone は Quick Look が自分の画面を出す -->
+<div id="xr-ui" class="xr-ui hide">
+  <p class="xr-hint" id="xr-hint">床にカメラを向けて、ゆっくり動かしてください</p>
+  <div class="xr-bar" id="xr-bar">
+    <button type="button" data-x="rotl" aria-label="左に回す">⟲</button>
+    <button type="button" data-x="scale" id="xr-scale">原寸</button>
+    <button type="button" data-x="rotr" aria-label="右に回す">⟳</button>
+    <button type="button" data-x="end" class="end">終わる</button>
+  </div>
+</div>
+
+<script type="module" src="./app.js"></script>
+</body>
+</html>

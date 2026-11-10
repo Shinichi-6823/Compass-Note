@@ -1,0 +1,120 @@
+/* app.css ― コンパスAR
+ *   iPhone SE（375×667）を基準に。見た目はコンパスヒヤリング・ノートと同じ（コンパスの :root の値・紺の帯・ロゴ）。
+ *   ★押す所は高さ 44px 以上・文字 16px（iOS は 16px 未満の欄を触ると画面が勝手に拡大する）
+ */
+:root{
+  color-scheme:light dark;
+  --bg:#F4F6F9; --card:#FFFFFF; --text:#2B3038; --sub:#5F6875; --line:#D2D8E0; --line2:#E9ECF1;
+  --accent:#2A66B8; --accent-d:#1F5CAD; --ok:#1B6E3C; --warn:#B06000; --ng:#A4262C;
+  --navy:#092162; --head:linear-gradient(100deg,#092162,#16357F); --brandline:#E0457B; --mark:#7BA7E8;
+  --stage:linear-gradient(180deg,#E9EEF5,#D6DEE9);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#14171c; --card:#1d2127; --text:#e8ebef; --sub:#9aa3b0; --line:#333a44; --line2:#262c34;
+    --accent:#6fa8dc; --accent-d:#8dbce6; --ok:#4fc17e; --warn:#d9b65a; --ng:#ef7a6c;
+    --stage:linear-gradient(180deg,#232932,#171b21);
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#14171c; --card:#1d2127; --text:#e8ebef; --sub:#9aa3b0; --line:#333a44; --line2:#262c34;
+  --accent:#6fa8dc; --accent-d:#8dbce6; --ok:#4fc17e; --warn:#d9b65a; --ng:#ef7a6c;
+  --stage:linear-gradient(180deg,#232932,#171b21);
+}
+
+*{box-sizing:border-box;-webkit-text-size-adjust:100%;-webkit-tap-highlight-color:transparent}
+html,body{margin:0}
+body{
+  background:var(--bg);color:var(--text);
+  font:16px/1.65 -apple-system,BlinkMacSystemFont,"Segoe UI","Hiragino Sans","BIZ UDPGothic","Yu Gothic UI",Meiryo,"Noto Sans JP",sans-serif;
+}
+.hide{display:none !important}
+.vh{position:absolute;width:1px;height:1px;opacity:0;overflow:hidden;clip:rect(0 0 0 0);pointer-events:none}
+
+/* ── 上の帯（コンパスの #top と同じ） ── */
+.top{
+  background:var(--head);color:#fff;border-top:3px solid var(--brandline);
+  padding:calc(env(safe-area-inset-top) + 8px) 16px 10px;
+}
+.top .line1{display:flex;align-items:center;gap:10px;min-height:32px}
+.top .cpmark{width:26px;height:26px;flex:0 0 auto;display:block}
+.top h1{font-size:17px;margin:0;font-weight:700}
+.top .sub{font-size:12px;color:rgba(255,255,255,.78);margin:2px 0 0}
+
+main{padding:14px 16px calc(env(safe-area-inset-bottom) + 28px);max-width:720px;margin:0 auto}
+
+/* ── 段 ── */
+.step{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:14px;margin:0 0 12px}
+.step h2{font-size:16px;margin:0 0 10px;display:flex;align-items:center;gap:8px}
+.step h2 .no{display:inline-grid;place-items:center;width:24px;height:24px;border-radius:50%;
+  background:var(--navy);color:#fff;font-size:13px;flex:0 0 auto}
+.note{font-size:13px;color:var(--sub);margin:8px 0 0;line-height:1.6}
+.note.center{text-align:center}
+.foot{margin-top:18px}
+
+/* ── ボタン ── */
+.btn{
+  display:flex;align-items:center;justify-content:center;gap:6px;width:100%;min-height:48px;
+  padding:0 14px;border:0;border-radius:8px;background:var(--accent);color:#fff;
+  font:inherit;font-weight:700;cursor:pointer;text-align:center;
+}
+.btn:active{background:var(--accent-d)}
+.btn:disabled{background:var(--line);color:var(--sub);cursor:default}
+.btn.big{min-height:56px;font-size:17px}
+.btn.sub{background:transparent;color:var(--accent);border:1px solid var(--line);margin-top:14px;font-weight:600}
+.btn.sub:active{background:var(--line2)}
+.btn.sub:disabled{color:var(--sub);background:transparent}
+.chip{
+  min-height:36px;padding:0 12px;border-radius:8px;border:1px solid var(--line);background:var(--card);
+  color:var(--text);font:inherit;font-size:14px;cursor:pointer;white-space:nowrap
+}
+.chip:active{background:var(--line2)}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+/* ── 選ぶ（2〜5個の並び） ── */
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:var(--card)}
+.seg button{min-height:40px;min-width:52px;padding:0 12px;border:0;background:transparent;color:var(--text);
+  font:inherit;font-size:15px;cursor:pointer;border-left:1px solid var(--line)}
+.seg button:first-child{border-left:0}
+.seg button.on{background:var(--accent);color:#fff;font-weight:700}
+.seg.wide{display:flex;width:100%}
+.seg.wide button{flex:1 1 0;min-width:0;padding:0 4px;min-height:48px}
+.row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:12px}
+.lbl{font-size:13px;color:var(--sub)}
+
+/* ── 3D の見本 ── */
+.stage{position:relative;width:100%;aspect-ratio:4/3;max-height:58vh;border-radius:8px;overflow:hidden;
+  background:var(--stage);border:1px solid var(--line);touch-action:none}
+.stage canvas{display:block;width:100%;height:100%}
+.stage .home{position:absolute;right:8px;top:8px;min-height:32px;font-size:13px;opacity:.92}
+
+.facts{display:grid;grid-template-columns:auto 1fr;gap:2px 12px;margin:12px 0 0;font-size:14px}
+.facts dt{color:var(--sub)}
+.facts dd{margin:0;word-break:break-all}
+.notes{margin:8px 0 0;padding:0 0 0 18px;font-size:13px;color:var(--warn)}
+.notes:empty{display:none}
+
+/* ── 知らせ ── */
+.msg{border-radius:8px;padding:10px 12px;margin:0 0 12px;font-size:14px;border:1px solid var(--line);background:var(--card)}
+.msg.busy{border-color:var(--accent)}
+.msg.busy::before{content:"";display:inline-block;width:12px;height:12px;margin-right:8px;vertical-align:-1px;
+  border:2px solid var(--accent);border-right-color:transparent;border-radius:50%;animation:spin .8s linear infinite}
+.msg.ng{border-color:var(--ng);color:var(--ng)}
+.msg.ok{border-color:var(--ok)}
+@keyframes spin{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){.msg.busy::before{animation:none}}
+
+/* ── 困ったとき ── */
+.help{margin-top:10px;font-size:13px;color:var(--sub)}
+.help summary{cursor:pointer;color:var(--accent);min-height:32px;display:flex;align-items:center}
+.help ol{margin:6px 0 0;padding-left:20px;line-height:1.7}
+.help li{margin-bottom:4px}
+
+/* ── Android の AR 中の操作（dom-overlay） ── */
+.xr-ui{position:fixed;inset:0;pointer-events:none;display:flex;flex-direction:column;justify-content:space-between;
+  padding:calc(env(safe-area-inset-top) + 12px) 12px calc(env(safe-area-inset-bottom) + 16px)}
+.xr-hint{align-self:center;margin:0;padding:8px 14px;border-radius:20px;background:rgba(9,33,98,.78);color:#fff;font-size:14px;text-align:center}
+.xr-bar{display:flex;gap:8px;justify-content:center;pointer-events:auto}
+.xr-bar button{min-width:56px;min-height:52px;padding:0 12px;border:0;border-radius:12px;background:rgba(255,255,255,.92);
+  color:#092162;font:inherit;font-size:18px;font-weight:700}
+.xr-bar button.end{background:rgba(164,38,44,.92);color:#fff;font-size:15px}

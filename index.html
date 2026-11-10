@@ -4,7 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="color-scheme" content="light dark">
-<meta name="theme-color" content="#1F5FD1">
+<meta name="theme-color" content="#092162">
+<link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2064%2064%22%3E%3Crect%20width%3D%2264%22%20height%3D%2264%22%20rx%3D%2213%22%20fill%3D%22%23092162%22%2F%3E%3Cg%20transform%3D%22translate(32%2C32)%20scale(.8)%20translate(-32%2C-32)%22%3E%3Cpath%20d%3D%22M50.1%2017.8A23%2023%200%201%200%2050.1%2046.2%22%20fill%3D%22none%22%20stroke%3D%22%23FFFFFF%22%20stroke-width%3D%227%22%20stroke-linecap%3D%22round%22%2F%3E%3Cpath%20d%3D%22M60%2032L33%2026.5%2033%2037.5Z%22%20fill%3D%22%23E0457B%22%2F%3E%3Cpath%20d%3D%22M19%2032L33%2026.5%2033%2037.5Z%22%20fill%3D%22%237BA7E8%22%2F%3E%3Ccircle%20cx%3D%2233%22%20cy%3D%2232%22%20r%3D%222.6%22%20fill%3D%22%23092162%22%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E">
 <style id="note-reset">[hidden]{display:none!important}html,body{margin:0;padding:0}</style>
 </head>
 <body>
@@ -12,17 +13,21 @@
 <meta name="claude:viewport-fit-sides" content="cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="コンパスノート">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-180.png">
 <!-- コンパスノート（現場調査）。src/note.template.html から build-note.mjs が作る（直に編集しない）。
      外部通信は無し：pdf.js・jsPDF は同梱、字体は端末のもの（iPhone＝ヒラギノ・Windows＝BIZ UDPゴシック）。 -->
 <style>
 :root{
   /* Layout: phone-first field app. Header band, scrolling work area, thumb-reach tab bar.
      The blue band and blue pins are the one loud element; dimension tags on photos stay yellow for legibility. */
-  --bg:#ECEDE6; --surface:#FAFAF6; --sunk:#E1E3DA; --ink:#19202D; --muted:#596170; --line:#CDD0C5;
-  --accent:#1F5FD1; --on-accent:#FFFFFF; --ok:#2B7A4B; --ng:#C23A2E; --warn:#A86A00;
-  --f-body:"Hiragino Sans","Hiragino Kaku Gothic ProN","BIZ UDPGothic","Yu Gothic UI",Meiryo,"Noto Sans JP",system-ui,sans-serif;
+  /* ★見た目はコンパスに合わせる（2026-11-09 利用者「アプリの雰囲気をコンパスと合わせて」）＝9本の :root の値 */
+  --bg:#F4F6F9; --surface:#FFFFFF; --sunk:#EEF1F5; --ink:#2B3038; --muted:#5F6875; --line:#D2D8E0;
+  --accent:#2A66B8; --on-accent:#FFFFFF; --ok:#1B6E3C; --ng:#A4262C; --warn:#B06000;
+  --navy:#092162; --head:linear-gradient(100deg,#092162,#16357F); --brandline:#E0457B; --mark:#7BA7E8;
+  --f-body:-apple-system,"Segoe UI","Hiragino Sans","Hiragino Kaku Gothic ProN","BIZ UDPGothic","Yu Gothic UI",Meiryo,"Noto Sans JP",system-ui,sans-serif;
   --f-mono:ui-monospace,"SF Mono",Menlo,"BIZ UDGothic",Consolas,monospace;
-  --r:12px;
+  --r:8px;
 }
 @media (prefers-color-scheme: dark){
   :root:not([data-theme="light"]){ --bg:#12151B; --surface:#1B1F27; --sunk:#252A33; --ink:#E9EAE4; --muted:#9BA2AE; --line:#333944; --accent:#6EA2FF; --on-accent:#0B1424; --ok:#5FBF86; --ng:#F06A5E; --warn:#E0A33A; color-scheme:dark }
@@ -45,15 +50,21 @@ p{margin:0}
 .small{font-size:13px}
 .lbl{font-size:12px;font-weight:700;letter-spacing:.06em;color:var(--muted)}
 
-#app{height:100%;display:flex;flex-direction:column}
+#app{height:100%;height:100dvh;display:flex;flex-direction:column}
 .boot{margin:auto;color:var(--muted)}
 
 /* header band */
-.bar{background:var(--surface);position:relative;flex:none;z-index:2}
-.bar::after{content:"";position:absolute;left:0;right:0;bottom:-4px;height:4px;background:var(--accent)}
+.bar{background:var(--head);color:#fff;border-top:3px solid var(--brandline);position:relative;flex:none;z-index:2}
+/* 帯の上の部品（白い字・半透明の枠。コンパスの #top と同じ見え方） */
+.bar .btn{background:rgba(255,255,255,.10);color:#fff;border-color:rgba(255,255,255,.45)}
+.bar .btn.primary{background:#fff;color:var(--navy);border-color:#fff}
+.bar .iconbtn{color:#fff}
+.bar .muted,.bar .ttl span{color:rgba(255,255,255,.75)}
+.bar .applink{text-decoration:none;white-space:nowrap}
+.cpmark{width:26px;height:26px;flex:none;display:block}
 .bar-in{display:flex;align-items:center;gap:10px;min-height:58px;padding-block:6px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
 .brand{display:flex;align-items:center;gap:10px;font-weight:700;font-size:17px;flex:1;min-width:0}
-.brand-mark{width:22px;height:22px;border-radius:50%;background:conic-gradient(from -20deg,var(--accent) 0 40deg,transparent 40deg 320deg,var(--accent) 320deg);box-shadow:inset 0 0 0 2px var(--accent)}
+/* .brand-mark（前の版の丸い印）はコンパスのロゴ .cpmark に替えた（2026-11-09） */
 .ttl{flex:1;min-width:0;display:grid;line-height:1.3}
 .ttl b{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:16px}
 .ttl span{font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -63,9 +74,9 @@ p{margin:0}
 .col{max-width:760px;margin:0 auto;display:grid;gap:16px;min-width:0}
 
 /* controls */
-.btn{min-height:48px;padding:0 18px;border-radius:10px;border:1px solid var(--line);background:var(--surface);color:var(--ink);font-weight:600;font-size:15px;display:inline-flex;align-items:center;justify-content:center;gap:8px;text-decoration:none}
+.btn{min-height:48px;padding:0 18px;border-radius:8px;border:1px solid var(--line);background:var(--surface);color:var(--ink);font-weight:600;font-size:15px;display:inline-flex;align-items:center;justify-content:center;gap:8px;text-decoration:none}
 .btn:active{transform:translateY(1px)}
-.btn.primary{background:var(--ink);color:var(--surface);border-color:var(--ink)}
+.btn.primary{background:var(--accent);color:var(--on-accent);border-color:var(--accent)}
 .btn.sm{min-height:40px;padding:0 14px;font-size:14px}
 .btn.ghost{background:transparent}
 .btn.danger{color:var(--ng);border-color:var(--ng);background:transparent}
@@ -76,12 +87,42 @@ p{margin:0}
 .scroll-x{flex-wrap:nowrap;overflow-x:auto;padding-bottom:4px;scrollbar-width:none}
 .chip{display:inline-flex;align-items:center;min-height:36px;padding:0 14px;border-radius:999px;border:1px solid var(--line);background:var(--surface);font-size:13px;font-weight:500;white-space:nowrap}
 .chip.sm{min-height:26px;padding:0 10px;font-size:12px}
-.chip.on{background:var(--ink);color:var(--surface);border-color:var(--ink)}
+.chip.on{background:var(--accent);color:var(--on-accent);border-color:var(--accent)}
 .badge{display:inline-flex;align-items:center;height:22px;padding:0 8px;border-radius:6px;background:var(--accent);color:var(--on-accent);font-size:11px;font-weight:700;letter-spacing:.04em}
 .badge.ng{background:var(--ng);color:#fff} .badge.ok{background:var(--ok);color:#fff}
 .ver{margin-left:6px;font-weight:500;align-self:baseline}
 .hintc{font-size:12px;font-weight:500;color:var(--muted);background:var(--sunk);border-radius:6px;padding:1px 8px;margin-left:auto;max-width:60%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .seedbox{display:grid;gap:4px;font-size:13px}
+.geochip.on{color:var(--ok);border-color:var(--ok)}
+.geoline{display:flex;justify-content:flex-end}
+.georow{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.btn.geoon{border-color:var(--ok);color:var(--ok)}
+.geonow{font-size:14px} .geonow .okt{color:var(--ok)} .geonow .ngt,.ngt{color:var(--ng)}
+.georefs{list-style:none;margin:0 0 8px;padding:0;display:grid;gap:6px} .georefs li{display:flex;align-items:center;gap:10px} .georefs li .btn{margin-left:auto}
+.kpcount{font-size:12px;font-weight:700;color:#E07A00;border:1px solid #E07A00;border-radius:999px;padding:2px 8px}
+.kpq{font-size:16px;font-weight:600}
+.kpl{gap:6px}
+.kprow{display:flex;gap:10px;align-items:flex-start;text-align:left;width:100%;border:1px solid var(--line);background:var(--bg);border-radius:10px;padding:10px;min-height:44px}
+.kprow small{display:block;color:var(--muted)}
+.kprow .kpn{flex:none;min-width:30px;height:26px;border-radius:6px;background:#E07A00;color:#fff;display:grid;place-items:center;font-size:12px;font-weight:700}
+.kprow.done .kpn{background:var(--ok)}
+.ckph{display:flex;gap:8px;align-items:center}
+.ckph .memo{flex:1;min-width:0}
+.ckcam{flex:none;width:44px;height:40px;border-radius:10px;border:1px solid var(--line);background:var(--bg);display:grid;place-items:center;position:relative;padding:0}
+.ckcam svg{width:20px;height:20px}
+.ckcam b{position:absolute;right:-5px;top:-6px;background:var(--accent);color:var(--on-accent);font-size:10px;border-radius:999px;min-width:18px;height:18px;display:grid;place-items:center}
+.ckphs{display:flex;gap:6px;overflow-x:auto}
+.ckpc{flex:none;width:72px;height:56px;padding:0;border:1px solid var(--line);border-radius:8px;overflow:hidden;position:relative;background:var(--sunk)}
+.ckpc canvas{width:100%;height:100%;display:block}
+.ckpc span{position:absolute;left:2px;top:2px;background:#19202D;color:#fff;font-size:10px;padding:0 4px;border-radius:4px}
+.cknph{font-size:12px;color:var(--ng);margin:0}
+.kpck{display:grid;gap:6px;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:10px}
+.askbox .fld{gap:4px}
+.asksrc{font-size:10px;font-weight:700;color:var(--muted);border:1px solid var(--line);border-radius:4px;padding:0 4px;margin-left:6px}
+.askleft{color:var(--warn);font-weight:700}
+.sc-pend{font-size:12px;color:var(--warn);font-weight:600}
+.callout ul{margin:4px 0 0;padding-left:18px;display:grid;gap:2px}
+.callout.ok{border-color:var(--ok)} .callout.ok b{color:var(--ok)}
 .seedbox b{font-weight:600}
 .note{padding:12px 14px;border-radius:10px;font-size:13px}
 .note.warn{background:var(--sunk);border:1px solid var(--warn);color:var(--ink)}
@@ -102,7 +143,7 @@ p{margin:0}
 .sc-stats .ng{color:var(--ng);font-weight:600}
 
 /* tab bar */
-.tabbar{flex:none;display:grid;grid-template-columns:repeat(6,1fr);background:var(--surface);border-top:1px solid var(--line);padding-left:max(4px,env(safe-area-inset-left,0px));padding-right:max(4px,env(safe-area-inset-right,0px))}
+.tabbar{flex:none;display:grid;grid-template-columns:repeat(7,1fr);background:var(--surface);border-top:1px solid var(--line);padding-left:max(4px,env(safe-area-inset-left,0px));padding-right:max(4px,env(safe-area-inset-right,0px))}
 .tab{border:0;background:transparent;min-height:58px;display:grid;justify-items:center;align-content:center;gap:2px;font-size:11px;font-weight:600;color:var(--muted);position:relative}
 .tab.on{color:var(--ink)}
 .tab.on::before{content:"";position:absolute;top:0;left:22%;right:22%;height:3px;border-radius:0 0 3px 3px;background:var(--accent)}
@@ -117,7 +158,7 @@ p{margin:0}
 .pmeta{position:absolute;left:0;right:0;bottom:0;padding:18px 8px 6px;font-size:11px;color:#fff;text-align:left;background:linear-gradient(transparent,rgba(0,0,0,.65));white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 
 /* sheets */
-#sheetRoot{position:fixed;inset:0;z-index:50}
+#sheetRoot{position:fixed;inset:0;z-index:50;height:100%;height:100dvh}
 .scrim{position:absolute;inset:0;background:rgba(12,15,20,.5);border:0;width:100%}
 .sheet{position:absolute;bottom:0;left:50%;transform:translateX(-50%);width:min(100%,640px);max-height:92%;overflow:auto;background:var(--surface);border-radius:18px 18px 0 0;padding-top:8px;padding-bottom:calc(22px + env(safe-area-inset-bottom,0px));padding-left:max(18px,env(safe-area-inset-left,0px));padding-right:max(18px,env(safe-area-inset-right,0px));display:grid;gap:14px;animation:up .22s ease-out}
 @keyframes up{from{transform:translate(-50%,24px);opacity:.6}to{transform:translate(-50%,0);opacity:1}}
@@ -245,7 +286,7 @@ input:focus,select:focus,textarea:focus{outline:2px solid var(--accent);outline-
 .seg.full button{min-height:44px}
 
 /* annotation editor: always dark, it is a photo workspace */
-#editor{position:fixed;inset:0;z-index:60;background:#0E1014;color:#F2F2EE}
+#editor{position:fixed;inset:0;z-index:60;background:#0E1014;color:#F2F2EE;height:100%;height:100dvh}
 .ed{height:100%;display:flex;flex-direction:column}
 .ed-top{display:flex;align-items:center;justify-content:space-between;gap:8px;padding-top:calc(8px + env(safe-area-inset-top,0px));padding-bottom:8px;padding-left:max(12px,env(safe-area-inset-left,0px));padding-right:max(12px,env(safe-area-inset-right,0px));font-size:15px}
 .edb{min-height:42px;padding:0 14px;border-radius:10px;border:1px solid #3A3F49;background:#1C2028;color:#F2F2EE;font-weight:600}
@@ -262,19 +303,134 @@ input:focus,select:focus,textarea:focus{outline:2px solid var(--accent);outline-
 #busy{position:fixed;inset:0;z-index:90;background:rgba(12,15,20,.55);display:grid;place-items:center;color:#fff;font-weight:600}
 #busy div{background:#19202D;padding:16px 22px;border-radius:12px}
 
+.sheet-foot{position:sticky;bottom:calc(-22px - env(safe-area-inset-bottom,0px));margin:0 calc(-1*max(18px,env(safe-area-inset-right,0px))) calc(-22px - env(safe-area-inset-bottom,0px)) calc(-1*max(18px,env(safe-area-inset-left,0px)));padding:10px max(18px,env(safe-area-inset-right,0px)) calc(12px + env(safe-area-inset-bottom,0px)) max(18px,env(safe-area-inset-left,0px));background:var(--surface);border-top:1px solid var(--line);display:grid;gap:8px;z-index:2;box-shadow:0 -6px 16px rgba(0,0,0,.06)}
+.brand span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tab span{white-space:nowrap;letter-spacing:-.02em}
+.dtools .seg,.dtools .btn,.dtools .scale,.dtools .kpcount{flex:none}
+@media (max-width:400px),(max-height:700px){ .dtools{gap:6px;padding-block:6px} .dtools .seg button{min-height:36px;padding:0 9px;font-size:12.5px} .dtools .btn.sm{min-height:34px} .dhint{font-size:11px;padding:4px 10px} }
+/* 背の低い・幅の狭い画面（iPhone SE・SharePoint アプリの中など）：帯とタブを詰め、中身の場所を空ける */
+@media (max-width:400px),(max-height:700px){
+  .bar-in{min-height:48px;padding-block:4px;gap:8px}
+  .brand{font-size:16px;gap:8px}
+  .ttl b{font-size:15px} .ttl span{font-size:11px}
+  .bar .btn.sm{min-height:36px;padding:0 10px;font-size:13px}
+  .main{padding-block:14px 24px}
+  .col{gap:12px}
+  .tab{min-height:52px;font-size:10.5px;gap:1px}
+  .tab svg{width:20px;height:20px}
+  .sheet{max-height:94%}
+  .card{padding:14px}
+  .btn{min-height:44px}
+}
+/* 一覧の帯にロゴ・ヒヤリングへの道・新しい調査が並ぶ（2026-11-09）。幅 420px 以下は版を隠し、ボタンを詰めて名前が切れないように */
+@media (max-width:420px){ .bar .ver{display:none} .bar .applink,.bar .btn.primary.sm{padding:0 9px;font-size:13px} .bar-in{gap:8px} .bar .brand{gap:7px} }
+@media (max-width:360px){ .ver{display:none} .tab{font-size:9px} .tab span{letter-spacing:-.07em} .addrow{grid-template-columns:1fr} .two{grid-template-columns:1fr} }
 @media (max-width:380px){ .seg button{padding:0 8px} .isum{grid-template-columns:1fr 1fr} }
+.dwrap{flex:1;min-height:0;display:flex}
+.dwrap .dstage{flex:1;min-width:0}
+.dside{display:none}
+/* iPad など幅のある画面（768px 以上）：下のタブは左の列に、小窓は真ん中に、中身は2列に（2026-11-04 利用者「iPad の画面もあれば」） */
+@media (min-width:768px){
+  #app:has(> .tabbar){display:grid;grid-template-columns:92px minmax(0,1fr);grid-template-rows:auto minmax(0,1fr)}
+  #app:has(> .tabbar) > .bar{grid-column:1/-1}
+  #app:has(> .tabbar) > .main{grid-column:2;grid-row:2}
+  #app > .tabbar{grid-column:1;grid-row:2;display:flex;flex-direction:column;justify-content:flex-start;gap:4px;padding:12px 6px;border-top:0;border-right:1px solid var(--line)}
+  #app > .tabbar .tab{min-height:72px;border-radius:12px;font-size:12px}
+  #app > .tabbar .tab.on{background:var(--sunk)}
+  #app > .tabbar .tab.on::before{top:12px;bottom:12px;left:0;right:auto;width:3px;height:auto;border-radius:0 3px 3px 0}
+  .col{max-width:1080px}
+  .scards{grid-template-columns:repeat(auto-fill,minmax(320px,1fr))}
+  .pgrid{grid-template-columns:repeat(auto-fill,minmax(220px,1fr))}
+  .ilist{grid-template-columns:1fr 1fr}
+  .ckg{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .ckg h2{grid-column:1/-1}
+  .hgrp{display:grid;grid-template-columns:1fr 1fr;gap:10px 14px}
+  .hgrp h2,.hgrp .chips,.hgrp .fld:has(textarea){grid-column:1/-1}
+  .askbox{grid-template-columns:1fr 1fr}
+  .askbox h2,.askbox p{grid-column:1/-1}
+  .sheet{bottom:auto;top:50%;transform:translate(-50%,-50%);max-height:88%;width:min(92%,620px);border-radius:18px;animation:pop .18s ease-out}
+  .sheet-foot{border-radius:0 0 18px 18px}
+  .dside{display:grid;align-content:start;gap:6px;width:300px;flex:none;overflow:auto;background:var(--surface);border-left:1px solid var(--line);padding:12px}
+  .dside h3{font-size:13px;color:var(--muted);margin-top:6px}
+  .dsph{display:grid;grid-template-columns:72px 1fr;gap:8px;align-items:center;text-align:left;border:1px solid var(--line);background:var(--bg);border-radius:10px;padding:6px;font-size:12px}
+  .dsph canvas{width:72px;height:54px;border-radius:6px;background:var(--sunk);display:block}
+  #editor .ed-tools{max-width:720px;margin:0 auto;width:100%}
+}
+@keyframes pop{from{transform:translate(-50%,-48%);opacity:.6}to{transform:translate(-50%,-50%);opacity:1}}
 @media (prefers-reduced-motion:reduce){ .sheet{animation:none} }
+
+/* ---------- 調査ポイントと計測（2026-11-06） ---------- */
+.mecard .me-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.ptcard{gap:10px}
+.pth{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.ptno{flex:none;min-width:36px;height:28px;padding:0 6px;border-radius:14px;background:var(--pc,#7B4BC4);color:#fff;display:grid;place-items:center;font-size:12px;font-weight:700;font-family:var(--f-mono)}
+.ptres{display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
+.mways{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.mways .btn{padding:0 6px;font-size:13px;gap:4px;min-width:0}
+.mways .btn span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mways svg{width:18px;height:18px}
+.ptfoot{display:flex;gap:6px;justify-content:flex-end;flex-wrap:wrap}
+.mrow{display:flex;gap:10px;align-items:flex-start;text-align:left;width:100%;border:1px solid var(--line);background:var(--bg);border-radius:10px;padding:8px 10px;min-height:44px}
+.mrow small{display:block;color:var(--muted)}
+.mrow .mway{flex:none;font-size:11px;font-weight:700;border:1px solid var(--line);border-radius:6px;padding:1px 6px;background:var(--surface)}
+@media (max-width:400px){ .mways .btn{flex-direction:column;min-height:54px;font-size:11.5px;gap:2px;padding:0 2px} }
+body.mrun{overflow:hidden}
+#mRun{position:fixed;inset:0;z-index:45;background:var(--surface);display:flex;flex-direction:column;height:100%;height:100dvh;padding:env(safe-area-inset-top,0px) max(12px,env(safe-area-inset-right,0px)) env(safe-area-inset-bottom,0px) max(12px,env(safe-area-inset-left,0px))}
+.mr-h{display:flex;align-items:center;gap:8px;padding:6px 0;flex:none}
+.mr-h .ttl{display:grid;line-height:1.3;min-width:0}
+.mr-h .ttl b{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mr-h .ttl span{font-size:12px;color:var(--muted)}
+.mr-v{flex:none;display:grid;gap:6px}
+.mr-v video{width:100%;max-height:36vh;background:#000;border-radius:10px}
+.mr-vc{display:grid;grid-template-columns:repeat(8,minmax(0,1fr));gap:4px}
+.mr-vc button{border:1px solid var(--line);background:var(--bg);border-radius:8px;min-height:36px;padding:0 2px;font-size:12px;font-weight:600;white-space:nowrap}
+.mr-vc button.on{background:var(--ink);color:var(--surface)}
+.mr-vc .sp{flex:1}
+.mr-clock{flex:none;display:flex;align-items:baseline;gap:12px;justify-content:space-between;padding:4px 2px}
+.mr-clock b{font-size:38px;line-height:1.1}
+.mr-pad{flex:1;min-height:0;display:grid;gap:8px;padding:4px 0;overflow:auto}
+.mr-pad.cap{grid-template-rows:minmax(110px,1fr) auto}
+.mr-pad.work{grid-template-columns:1fr 1fr;grid-auto-rows:minmax(54px,1fr)}
+.mbig{border:0;border-radius:16px;background:var(--accent);color:var(--on-accent);font-size:30px;font-weight:800;display:grid;place-content:center;gap:4px;touch-action:manipulation}
+.mbig small,.mel small{display:block;font-size:12px;font-weight:600;opacity:.8}
+.mbig:active,.mel:active{transform:scale(.98)}
+.mab{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.mel{border:2px solid var(--line);border-radius:14px;background:var(--bg);color:var(--ink);font-size:17px;font-weight:700;touch-action:manipulation;padding:6px;min-height:54px}
+.mel.on{border-color:#7B4BC4;background:#7B4BC4;color:#fff}
+.mel.cut{grid-column:1/-1;background:var(--ink);color:var(--surface);border-color:var(--ink);font-size:15px}
+.mr-log{flex:none;min-height:20px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding:2px}
+.mr-foot{flex:none;display:grid;grid-template-columns:1fr 1fr 1.3fr;gap:8px;padding:8px 0 10px}
+.mr-foot.v2{grid-template-columns:1fr 1.6fr}
+.mr-foot .btn{min-height:50px;padding:0 6px;font-size:14px;gap:4px}
+.mr-foot .btn.danger{background:var(--ng);color:#fff;border-color:var(--ng)}
+@media (max-height:620px){ .mr-clock b{font-size:30px} .mr-v video{max-height:30vh} .mr-foot .btn{min-height:44px} }
+@media (max-width:360px){ .mr-foot .btn{font-size:12.5px} .mr-foot svg{display:none} }
+@media (min-width:768px){ #mRun{padding-left:max(24px,calc((100% - 760px)/2));padding-right:max(24px,calc((100% - 760px)/2))} .mr-pad.work{grid-template-columns:repeat(3,1fr)} }
+.mres-big{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
+.mres-big b{font-size:28px}
+.mtbl{width:100%;border-collapse:collapse;font-size:13px}
+.mtbl th,.mtbl td{border-bottom:1px solid var(--line);padding:4px 6px;text-align:right;vertical-align:top}
+.mtbl th:first-child,.mtbl td:first-child{text-align:left}
+.mevs summary{cursor:pointer;font-weight:600;font-size:13px;padding:4px 0}
+.mev{display:grid;grid-template-columns:auto 1fr auto auto;gap:6px;align-items:center;font-size:13px;padding:3px 0;border-bottom:1px dashed var(--line)}
+.mev select{min-height:34px;min-width:0}
+.mev button{border:1px solid var(--line);background:var(--bg);border-radius:8px;min-width:34px;min-height:34px}
+.mev .mph{font-family:var(--f-mono);font-size:12px;padding:0 6px}
+.mprow .kpn{background:#7B4BC4}
 </style>
 
 <div id="app"><p class="boot">読み込んでいます…</p></div>
 <div id="sheetRoot" hidden></div>
 <div id="editor" hidden></div>
+<div id="mRun" hidden role="dialog" aria-modal="true" aria-label="計測"></div>
 <div id="toast" hidden role="status"></div>
 <div id="busy" hidden><div id="busyMsg">処理しています…</div></div>
 <input type="file" id="f_cam" accept="image/*" capture="environment" hidden>
 <input type="file" id="f_lib" accept="image/*" multiple hidden>
 <input type="file" id="f_pdf" accept="application/pdf,.pdf" hidden>
 <input type="file" id="f_json" accept="application/json,.json" hidden>
+<input type="file" id="f_vcam" accept="video/*" capture="environment" hidden>
+<input type="file" id="f_vlib" accept="video/*" hidden>
 
 <script id="vendor-pdfjs">
 /**
@@ -798,6 +954,103 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var r,n,i,a,
   ];
   /** 運用情報 Operation.csv（detail.js の列）。空欄だけ */
   const OPE_MAP = [['作業時間', '稼働時間帯'], ['人員数', '作業人数'], ['上位システム', '上位システム']];
+  /**
+   * チェック項目（ノートの画面・報告書と、案件管理の「現場の結果を見る」で同じものを使う。2026-11-04 ノートから移した）
+   *   [鍵, 名前, 種類(num|text|judge), 単位, 必須]
+   */
+  const CHECKS = [
+    { g: 'common', title: '共通（建屋）', items: [['ceil', '天井高さ', 'num', 'mm', 1], ['beam', '梁下高さ', 'num', 'mm', 1], ['span', '柱スパン', 'text', 'mm', 1], ['col', '柱サイズ', 'text', 'mm', 1], ['load', '床耐荷重', 'num', 'kg/m²', 1], ['floor', '床材・段差・勾配', 'text', '', 0], ['dock', '搬入口・搬入経路の寸法', 'text', 'mm', 1], ['fire', '防火区画・防火シャッター', 'judge', '', 1], ['spr', 'スプリンクラー・照明の位置', 'judge', '', 0], ['power', '動力電源の位置と容量', 'text', '', 1], ['air', 'エアー源', 'judge', '', 0], ['temp', '空調・温度帯', 'text', '', 0]] },
+    { g: 'conv', title: 'コンベヤ導入', items: [['lineh', '既存ラインの高さ', 'num', 'mm', 1], ['joint', '接続部の位置と高さ', 'text', '', 1], ['goods', '扱う荷物（サイズ・重量・荷姿）', 'text', '', 1], ['peak', '処理量（ピーク時）', 'text', '', 1], ['flow', '作業者の動線', 'judge', '', 0], ['anchor', '床アンカーの可否', 'judge', '', 1]] },
+    { g: 'agv', title: 'AGV/AMR導入', items: [['aisle', '走行路の通路幅', 'num', 'mm', 1], ['flat', '床の平滑度・継ぎ目・段差', 'judge', '', 1], ['wifi', 'Wi-Fiの電波状況', 'judge', '', 1], ['charge', '充電ステーションの設置場所', 'text', '', 1], ['door', '自動ドア・EV・シャッター連動', 'text', '', 0], ['mix', '人・車両との混在', 'judge', '', 1]] },
+    { g: 'layout', title: '倉庫レイアウト', items: [['rack', '保管品目とラックの種類', 'text', '', 1], ['berth', '入出荷バースの数と位置', 'text', '', 1], ['fork', 'フォークリフトの通路幅', 'num', 'mm', 0], ['expand', '将来の拡張スペース', 'text', '', 0]] },
+    { g: 'retro', title: '更新・改造', items: [['maker', '既存設備のメーカー・型式・年式', 'text', '', 1], ['panel', '制御盤の位置', 'text', '', 1], ['host', '上位システム（WMS・WCS）', 'text', '', 1], ['stop', '停止できる期間・時間帯', 'text', '', 1], ['remove', '撤去品の扱い', 'text', '', 0]] },
+  ];
+  const applicable = s => CHECKS.filter(g => g.g === 'common' || ((s && s.案件種別) || []).includes(g.g));
+
+  /**
+   * 写真の書き込み（寸法・矢印・丸・ペン・文字）を描く。座標は写真のピクセル。ノートと案件管理の結果の画面で同じ絵にする。
+   *   font(size, weight, mono) は呼ぶ側の字体（無ければ system-ui）
+   */
+  function drawAnns(g, anns, W, font) {
+    font = font || ((size, w, mono) => (w || 400) + ' ' + size + 'px ' + (mono ? 'ui-monospace,Consolas,monospace' : 'system-ui,"Hiragino Sans","BIZ UDPGothic",Meiryo,sans-serif'));
+    const lw = Math.max(2, W / 300), fs = Math.max(16, W / 24);
+    const head = (tip, from, size, fill) => { const a = Math.atan2(tip.y - from.y, tip.x - from.x); g.beginPath(); g.moveTo(tip.x, tip.y); g.lineTo(tip.x - size * Math.cos(a - 0.42), tip.y - size * Math.sin(a - 0.42)); g.lineTo(tip.x - size * Math.cos(a + 0.42), tip.y - size * Math.sin(a + 0.42)); g.closePath(); g.fillStyle = fill; g.fill(); };
+    const twice = (w, color, path) => { g.strokeStyle = 'rgba(255,255,255,.9)'; g.lineWidth = w * 2.6; path(); g.stroke(); g.strokeStyle = color; g.lineWidth = w; path(); g.stroke(); };
+    const box = (x, y, w, h, r) => { g.beginPath(); if (g.roundRect) g.roundRect(x, y, w, h, r); else g.rect(x, y, w, h); };
+    const RED = '#E3342B', INK = '#111';
+    for (const a of anns || []) {
+      g.save(); g.lineCap = 'round'; g.lineJoin = 'round';
+      if (a.type === 'dim') {
+        const p1 = a.p1, p2 = a.p2, dx = p2.x - p1.x, dy = p2.y - p1.y, L = Math.hypot(dx, dy) || 1, nx = -dy / L, ny = dx / L, t = fs * 0.55;
+        twice(lw, INK, () => { g.beginPath(); g.moveTo(p1.x, p1.y); g.lineTo(p2.x, p2.y); g.moveTo(p1.x + nx * t, p1.y + ny * t); g.lineTo(p1.x - nx * t, p1.y - ny * t); g.moveTo(p2.x + nx * t, p2.y + ny * t); g.lineTo(p2.x - nx * t, p2.y - ny * t); });
+        head(p1, p2, lw * 5, INK); head(p2, p1, lw * 5, INK);
+        const n = num(a.v), label = a.v != null && a.v !== '' ? (n != null && typeof a.v === 'number' ? fmtN(n) : (n != null && /^[\d.,]+$/.test(str(a.v)) ? fmtN(n) : str(a.v))) : '?';
+        g.font = font(fs, 600, true); const tw = g.measureText(label).width, bw = tw + fs * 0.8, bh = fs * 1.45, mx = (p1.x + p2.x) / 2, my = (p1.y + p2.y) / 2;
+        g.fillStyle = '#F5B800'; g.strokeStyle = INK; g.lineWidth = Math.max(1.5, lw * 0.6);
+        box(mx - bw / 2, my - bh / 2, bw, bh, fs * 0.25); g.fill(); g.stroke();
+        g.fillStyle = INK; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText(label, mx, my + fs * 0.04);
+      } else if (a.type === 'arrow') {
+        twice(lw * 1.1, RED, () => { g.beginPath(); g.moveTo(a.p1.x, a.p1.y); g.lineTo(a.p2.x, a.p2.y); });
+        head(a.p2, a.p1, lw * 7, RED);
+      } else if (a.type === 'circle') {
+        const cx = (a.p1.x + a.p2.x) / 2, cy = (a.p1.y + a.p2.y) / 2, rx = Math.abs(a.p2.x - a.p1.x) / 2, ry = Math.abs(a.p2.y - a.p1.y) / 2;
+        twice(lw * 1.1, RED, () => { g.beginPath(); g.ellipse(cx, cy, Math.max(rx, 1), Math.max(ry, 1), 0, 0, Math.PI * 2); });
+      } else if (a.type === 'pen') {
+        twice(lw * 1.1, RED, () => { g.beginPath(); (a.pts || []).forEach((p, i) => i ? g.lineTo(p.x, p.y) : g.moveTo(p.x, p.y)); });
+      } else if (a.type === 'text') {
+        const s = a.s || '｜'; g.font = font(fs, 700); const tw = g.measureText(s).width, pad = fs * 0.35;
+        g.fillStyle = 'rgba(255,255,255,.92)'; g.strokeStyle = RED; g.lineWidth = Math.max(1.5, lw * 0.6);
+        box(a.p1.x, a.p1.y, tw + pad * 2, fs * 1.5, fs * 0.2); g.fill(); g.stroke();
+        g.fillStyle = RED; g.textAlign = 'left'; g.textBaseline = 'middle'; g.fillText(s, a.p1.x + pad, a.p1.y + fs * 0.77);
+      }
+      g.restore();
+    }
+  }
+
+  /**
+   * 確認点のひな形（2026-11-04 利用者「確認点のひな形」）。[内容, 結び付くチェック項目の鍵（無ければ ''）]
+   *   check があると、ノートの確認点の小窓でそのチェック項目の値・判定をその場で入れられ、撮った写真もその項目に付く
+   */
+  const KP_TEMPLATES = [
+    ['梁下高さを測る', 'beam'], ['天井高さを測る', 'ceil'], ['柱スパンを測る', 'span'], ['柱サイズを測る', 'col'],
+    ['床の段差・勾配を見る', 'floor'], ['床の状態（ひび・継ぎ目）を見る', 'flat'], ['シャッター・扉の開口を測る', 'dock'], ['搬入経路の幅・高さを測る', 'dock'],
+    ['動力電源の位置と容量を確かめる', 'power'], ['エアー源の位置を確かめる', 'air'], ['スプリンクラー・照明の位置を見る', 'spr'], ['防火区画・防火シャッターを確かめる', 'fire'],
+    ['既存ラインの高さを測る', 'lineh'], ['接続部の位置と高さを測る', 'joint'], ['通路幅を測る', 'aisle'], ['Wi-Fi の電波を確かめる', 'wifi'],
+    ['充電ステーションの置き場所を見る', 'charge'], ['制御盤の位置を確かめる', 'panel'], ['障害物（配管・ダクト・梁）を確かめる', ''], ['既存設備の寸法を測る', 'maker'],
+  ];
+  const checkItem = k => { for (const g of CHECKS) for (const it of g.items) if (it[0] === k) return { g: g.g, title: g.title, key: it[0], label: it[1], kind: it[2], unit: it[3], req: it[4] }; return null; };
+
+  /**
+   * 現場で確かめること（2026-11-04 利用者「ヒアリングや取捨選択などで、現場で確認するものを追加」）。
+   *   案件管理のヒアリング・取捨選択で空いている欄のうち、現場で確かめられるもの。案件管理が種の「聞く項目」にし、ノートで答えて戻す。
+   *   src＝'hearing'（Hearing.csv の列＝hearing.js の id）／'screening'（Screening.csv の列＝screening.js の id）
+   */
+  const ASK_HEARING = ['新築既設', '倉庫機能', '人員数', '作業時間', '作業量', '入荷時間', '出荷時間', '入荷量', '出荷量', '在庫量', 'SKU数', '作業内容', 'ボトルネック',
+    '荷姿入荷', '荷姿出荷', '荷姿保管', '商材内容', '商材特長', '収納サイズ', '繁忙期', '収納重量', 'システム有無', '設置スペース', '建屋図面', '建屋特記', '将来物量', '要求能力'];
+  const ASK_SCREENING = ['設置場所', '建屋図面', '設置スペースの制約', '設備・安全基準', '特殊仕様要否', '処理能力'];
+  /** 聞く項目を作る。hearingFields＝[{id,label,type,opts}]（hearing.js）・screeningFields＝[{id,label,t,opts}]・curH／curS＝いまの値の行 */
+  function askItems(hearingFields, screeningFields, curH, curS) {
+    curH = curH || {}; curS = curS || {};
+    const out = [];
+    (hearingFields || []).forEach(f => { if (ASK_HEARING.indexOf(f.id) < 0 || str(curH[f.id])) return; if (['text', 'area', 'sel', 'date'].indexOf(f.type) < 0) return;
+      out.push({ src: 'hearing', id: f.id, label: str(f.label), type: f.type === 'sel' ? 'sel' : f.type === 'area' ? 'area' : 'text', opts: f.type === 'sel' ? (f.opts || []).filter(Boolean) : null }); });
+    (screeningFields || []).forEach(f => { if (ASK_SCREENING.indexOf(f.id) < 0 || str(curS[f.id])) return;
+      out.push({ src: 'screening', id: f.id, label: str(f.label), type: f.t === 'sel' ? 'sel' : 'text', opts: f.t === 'sel' ? (f.opts || []).filter(Boolean) : null }); });
+    return out;
+  }
+
+  /** 調査の残り（書き出す前・一覧・報告書で知らせる）。確認点のまだ・必須の未入力・NG なのに写真なし・現場で確かめることの空き */
+  function pending(s) {
+    s = s || {}; const ck = s.checks || {};
+    const kp = (s.確認点 || []).filter(c => !c.済);
+    const req = [], ngNoPhoto = [];
+    applicable(s).forEach(g => g.items.forEach(([k, label, , , rq]) => { const r = ck[k]; if (rq && !filled(r)) req.push(label); if (r && r.j === 'NG' && !((r.photos || []).length)) ngNoPhoto.push(label); }));
+    const ask = (s.聞く項目 || []).filter(a => !str(a.値));
+    //  自分の担当（担当が空も）の調査ポイントで、まだ1回も測っていないもの
+    const mt = (s.調査ポイント || []).filter(p => mine(p, s.調査者) && !(s.計測 || []).some(m => m.pt === p.id));
+    return { kp, req, ngNoPhoto, ask, mt, n: kp.length + req.length + ngNoPhoto.length + ask.length + mt.length };
+  }
+
   /** 標準荷姿の機種の印 → 名前（screening.js と同じ） */
   const MNAME = { T50: 'T-50', T1000: 'T-1000', RR: 'RR-H', AS: 'AutoStore', CYB: 'CYBISTER', MR: '移動棚' };
 
@@ -904,9 +1157,27 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var r,n,i,a,
     if (s.drawing) {
       const d = s.drawing;
       out.layout = { drawing: { blobId: d.blobId, w: d.w, h: d.h, mmPerPx: d.mmPerPx || null, calib: d.calib || null, name: str(d.name), page: d.page || 1 },
-        pins: (s.pins || []).map(p => { const ph = (s.photos || []).find(x => x.id === p.photoId) || {}; return { photoId: p.photoId, px: p.x, py: p.y, dir: p.dir == null ? null : p.dir, area: str(ph.area), tags: (ph.tags || []).slice(), memo: str(ph.memo) }; }),
-        grids: null, columns: [], zones: [] };
+        pins: (s.pins || []).map(p => { const ph = (s.photos || []).find(x => x.id === p.photoId) || {}; return { photoId: p.photoId, px: p.x, py: p.y, dir: p.dir == null ? null : p.dir, area: str(ph.area), tags: (ph.tags || []).slice(), memo: str(ph.memo),
+          gps: p.auto ? { acc: p.acc == null ? null : p.acc } : null }; }),   // GPS で置いたピン（2026-11-09。acc＝ずれの見込み m）
+        確認点: (s.確認点 || []).map(c => ({ id: c.id, px: c.x, py: c.y, 内容: str(c.内容), 済: !!c.済, photoId: c.photoId || null, メモ: str(c.メモ) })),
+        調査ポイント: [], grids: null, columns: [], zones: [] };
     }
+    //  現場で確かめること（聞く項目）の答え → ヒアリング・取捨選択の列へ
+    out.screening = {};
+    out.聞く項目 = (s.聞く項目 || []).map(a => ({ src: a.src, id: a.id, label: str(a.label), 値: str(a.値) }));
+    (s.聞く項目 || []).forEach(a => { const v = str(a.値); if (!v) return; if (a.src === 'screening') out.screening[a.id] = v; else if (!out.hearing[a.id]) out.hearing[a.id] = v; });
+    //  チェック項目に付けた写真（項目 → P番号）
+    out.チェックの写真 = {};
+    Object.keys(ck).forEach(k => { const ids = (ck[k] && ck[k].photos) || []; if (ids.length) out.チェックの写真[k] = ids.map(id => 'P' + String((s.photos || []).findIndex(p => p.id === id) + 1).padStart(2, '0')); });
+    out.確認点 = (s.確認点 || []).map((c, i) => ({ no: i + 1, check: str(c.check), 内容: str(c.内容), 済: !!c.済, メモ: str(c.メモ), 写真: c.photoId ? 'P' + String((s.photos || []).findIndex(p => p.id === c.photoId) + 1).padStart(2, '0') : '' }));
+    //  調査ポイントと計測（2026-11-06）。動画は入れない（時刻の印と集計だけ）
+    const pno = id => id ? 'P' + String((s.photos || []).findIndex(p => p.id === id) + 1).padStart(2, '0') : '';
+    const pts = (s.調査ポイント || []).map((q, i) => point(q, i));
+    out.計測 = (s.計測 || []).map(m => { const st = measureStats(m);
+      return { id: str(m.id), pt: str(m.pt), 種類: st.種類, 方法: str(m.方法), 開始: str(m.開始), 測った人: str(m.測った人), 長さ: st.長さ, 個数: str(m.個数), 人数: str(m.人数), 距離: str(m.距離), メモ: str(m.メモ),
+        ev: (m.ev || []).map(e => ({ t: Math.round(+e.t * 100) / 100, k: str(e.k), 写真: pno(e.ph) })), 動画: m.video ? str(m.video.name) || '動画' : '', 集計: st }; });
+    out.調査ポイント = pts.map((q, i) => Object.assign({ no: 'M' + (i + 1) }, q, { 結果: pointResult(q, out.計測) }));
+    if (out.layout) out.layout.調査ポイント = out.調査ポイント.filter(q => q.x != null).map(q => ({ id: q.id, no: q.no, px: q.x, py: q.y, 種類: q.種類, 名前: q.名前, 対象: q.対象, 担当: q.担当, 目標: q.目標, 結果: q.結果.文字, 値: q.結果.値, 判定: q.結果.判定 }));
     out.photos = (s.photos || []).map((p, i) => ({ id: p.id, blobId: p.blobId, no: 'P' + String(i + 1).padStart(2, '0'), area: str(p.area), tags: (p.tags || []).slice(), memo: str(p.memo), ann: (p.ann || []).length }));
     return out;
   }
@@ -914,7 +1185,8 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var r,n,i,a,
   /** compass ブロックから、コンパスへ書くファイルの名前の頭（現場調査_<物件番号 or 客先>_<日付>_<拠点>） */
   function fileStem(s) {
     const safe = v => str(v).replace(/[\\/:*?"<>|\s（）()]+/g, '_').replace(/^_+|_+$/g, '').slice(0, 40);
-    return ['現場調査', safe(s.物件番号) || safe(s.客先名) || '調査', str(s.調査日) || today(), safe(s.建屋名称)].filter(Boolean).join('_');
+    const multi = (s.調査ポイント || []).some(p => str(p.担当)) || (s.計測 || []).length;
+    return ['現場調査', safe(s.物件番号) || safe(s.客先名) || '調査', str(s.調査日) || today(), safe(s.建屋名称), multi ? safe(s.調査者) : ''].filter(Boolean).join('_');
   }
 
   // ════════════════════════════════════════════════════════════════════════
@@ -956,7 +1228,34 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var r,n,i,a,
         電話番号: str(win['電話番号']), メールアドレス: str(win['メールアドレス']), 決裁者名: str(dec['氏名']) || str(hr['決裁者名']) },
       ヒアリング: { 導入検討背景: str(hr['導入検討背景']), 現状課題: str(hr['現状課題']), 作業量: str(hr['作業量']), 繁忙期: str(hr['繁忙期']), 人員数: str(hr['人員数']) },
       標準荷姿: std,
+      //  事前準備（案件管理の「現場調査」で、図面・エリア・案件種別・確認点を用意したもの。2026-11-04）
+      ...prepOf(a.prep),
     };
+  }
+  /**
+   * 事前準備 → 種の項目。prep = { 案件種別:[], エリア:[], 図面:{画像(dataURL), 幅, 高さ, mm毎px, 基準:{a:{x,y},b:{x,y},mm}, 名前, ページ}, 確認点:[{id,x,y,内容}], 準備日時 }
+   *   座標は図面の画像のピクセル（ノートと同じ）。無い項目は書かない（前の種と同じ形のまま）
+   */
+  function prepOf(p) {
+    if (!p) return {};
+    const o = {};
+    if ((p.案件種別 || []).length) o.案件種別 = p.案件種別.filter(k => TYPES.some(t => t[0] === k));
+    if ((p.エリア || []).length) o.エリア = p.エリア.map(str).filter(Boolean);
+    if (p.図面 && p.図面.画像) {
+      const d = p.図面;
+      o.図面 = { 画像: d.画像, 幅: d.幅, 高さ: d.高さ, mm毎px: d.mm毎px || null, 基準: d.基準 || null, 名前: str(d.名前), ページ: d.ページ || 1 };
+    }
+    if ((p.確認点 || []).length) o.確認点 = p.確認点.map((c, i) => ({ id: str(c.id) || 'k' + (i + 1), x: +c.x, y: +c.y, 内容: str(c.内容), check: str(c.check) }));
+    if ((p.調査ポイント || []).length) o.調査ポイント = p.調査ポイント.map((q, i) => point(q, i));
+    if ((p.聞く項目 || []).length) o.聞く項目 = p.聞く項目.map(a => ({ src: a.src, id: str(a.id), label: str(a.label), type: a.type || 'text', opts: a.opts || null }));
+    if (p.準備日時) o.準備日時 = str(p.準備日時);
+    return o;
+  }
+  /** 種 → 事前準備（案件管理で前の準備を開き直すとき） */
+  function prepFromSeed(seed) {
+    seed = seed || {};
+    return { 案件種別: (seed.案件種別 || []).slice(), エリア: (seed.エリア || []).slice(), 図面: seed.図面 ? Object.assign({}, seed.図面) : null,
+      確認点: (seed.確認点 || []).map(c => Object.assign({}, c)), 聞く項目: (seed.聞く項目 || []).map(a => Object.assign({}, a)), 調査ポイント: (seed.調査ポイント || []).map((q, i) => point(q, i)), 準備日時: str(seed.準備日時) };
   }
 
   /** 種 → ノートの survey に入れるもの（空欄だけに入れる。呼ぶ側が Object.assign する） */
@@ -974,10 +1273,21 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var r,n,i,a,
     return {
       物件番号: str(seed.物件番号), 案件キー: str(seed.案件キー) || str(seed.物件番号), 案件名: str(seed.案件名),
       客先名: str(seed.客先名), 建屋名称: str(seed.建屋名称), 現場住所: str(seed.現場住所), 調査者: str(seed.営業担当),
-      案件種別: (seed.案件種別候補 || []).filter(k => TYPES.some(t => t[0] === k)),
+      //  事前準備で選んだ案件種別があればそれ、無ければ候補
+      案件種別: ((seed.案件種別 || []).length ? seed.案件種別 : (seed.案件種別候補 || [])).filter(k => TYPES.some(t => t[0] === k)),
+      エリア: (seed.エリア || []).map(str).filter(Boolean),
+      //  図面（画像は dataURL のまま。ノートが Blob にして端末に保存する）。drawing はノートの中の形（w・h・mmPerPx・calib）
+      図面: seed.図面 && seed.図面.画像 ? { 画像: seed.図面.画像, drawing: { w: +seed.図面.幅, h: +seed.図面.高さ, mmPerPx: seed.図面.mm毎px || null,
+        calib: seed.図面.基準 || null, name: str(seed.図面.名前) || '建屋図面', page: seed.図面.ページ || 1 } } : null,
+      確認点: (seed.確認点 || []).map(c => ({ id: str(c.id), x: +c.x, y: +c.y, 内容: str(c.内容), check: str(c.check), 済: false, photoId: null, メモ: '' })),
+      聞く項目: (seed.聞く項目 || []).map(a => ({ src: a.src, id: str(a.id), label: str(a.label), type: a.type || 'text', opts: a.opts || null, 値: '' })),
+      調査ポイント: (seed.調査ポイント || []).map((q, i) => Object.assign(point(q, i), { fromSeed: true })),
       items,
-      hearing: { 担当者名: str(w.担当者名), 担当者部署: str(w.担当者部署), 電話番号: str(w.電話番号), メールアドレス: str(w.メールアドレス), 決裁者名: str(w.決裁者名) },
+      //  ★2026-11-09 ヒアリングの欄はコンパスヒヤリングへ移した。窓口はノートの欄に写さず、種のまま「案件管理に入っていること」で見せる
+      //    （写すと、直していない値まで帰りの JSON に乗って客先担当者の提案に出ていた）
+      hearing: {},
       seed: { bld: Object.assign({}, seed.建屋 || {}), std: Object.assign({}, seed.標準荷姿 || {}), 案件名: str(seed.案件名), 営業担当: str(seed.営業担当), 設計担当: str(seed.設計担当),
+        窓口: { 担当者名: str(w.担当者名), 担当者部署: str(w.担当者部署), 電話番号: str(w.電話番号), メールアドレス: str(w.メールアドレス), 決裁者名: str(w.決裁者名) },
         ヒアリング: Object.assign({}, seed.ヒアリング || {}), 書き出し: str(seed.書き出し) },
     };
   }
@@ -1054,6 +1364,11 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var r,n,i,a,
     const OL = { 稼働時間帯: '稼働時間帯', 作業人数: '作業人数', 上位システム: '上位システム', 温度帯: '温度帯', 運用備考: '運用の備考' };
     const op = cp.operation || {}, co = cur.operation || {};
     for (const col of Object.keys(op)) put('operation', 'Operation.csv', col, OL[col] || col, op[col], co[col]);
+    //  現場で確かめること（聞く項目）の名前を、ヒアリングの欄の名前に使う
+    (cp.聞く項目 || []).forEach(a => { if (a.src !== 'screening' && !HL[a.id]) HL[a.id] = a.label; });
+    const sc = cp.screening || {}, csc = cur.screening || {}, SL = {};
+    (cp.聞く項目 || []).forEach(a => { if (a.src === 'screening') SL[a.id] = a.label; });
+    for (const col of Object.keys(sc)) put('screening', 'Screening.csv', col, SL[col] || col, sc[col], csc[col]);
     const bs = cp.basic || {}, cbs = cur.basic || {};
     for (const col of Object.keys(bs)) put('basic', 'ProjectEdit.csv', col, col === '稼働時期' ? '稼働時期（導入希望時期）' : col, bs[col], cbs[col]);
     return rows;
@@ -1061,7 +1376,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var r,n,i,a,
 
   /** 提案の行を「書く値」にまとめる（on の行だけ）。append は末尾に足した文 */
   function applyRows(rows) {
-    const out = { building: {}, hearing: {}, operation: {}, basic: {}, conveyance: [], contacts: [] };
+    const out = { building: {}, hearing: {}, operation: {}, basic: {}, screening: {}, conveyance: [], contacts: [] };
     for (const r of rows || []) {
       if (!r.on) continue;
       if (r.sec === 'conveyance' || r.sec === 'contacts') { out[r.sec].push(r.val); continue; }
@@ -1071,7 +1386,278 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var r,n,i,a,
     return out;
   }
 
-  const API = { SEED_SCHEMA, OUT_SCHEMA, TYPES, PACK, BLD_MAP, HEAR_MAP, OPE_MAP, MNAME, num, toCompass, fileStem, makeSeed, fromSeed, checkHints, stdJudge, importPlan, applyRows, guessTypes, stamp, today };
+
+  // ════════════════════════════════════════════════════════════════════════
+  //  調査ポイントと計測（2026-11-06 利用者「作業者の作業時間・コンベヤラインの能力を、写真や動画で時間を測りたい。
+  //  複数人で別々に作業・能力検証をするので、レイアウト上に調査ポイントを置けると便利」）
+  //   調査ポイント＝{ id, x, y（図面の画素・置いていなければ null）, 種類（作業時間｜能力）, 名前, 対象, 担当, 目標（個/h）, 要素:[], 距離（m）, 個数, 人数, メモ }
+  //   計測＝{ id, pt（調査ポイントの id・無ければ ''）, 種類, 方法（その場｜動画｜写真）, 開始（ISO）, 測った人, 長さ（秒）,
+  //          ev:[{ t（秒）, k（要素の名前｜区切り｜通過｜始点｜終点｜写真）, ph（写真の id） }], 個数, 人数, 距離, メモ, video:{blobId,name}|null }
+  //   ★動画は端末の中だけ（書き出す JSON に入れない）。帰るのは時刻の印と集計だけ
+  // ════════════════════════════════════════════════════════════════════════
+  const MKINDS = ['作業時間', '能力'];
+  const MWAYS = ['その場', '動画', '写真'];
+  const WORK_ELEMENTS = ['取る', '運ぶ', '検品', '箱詰め', '待ち'];
+  const EV_CYCLE = '区切り', EV_PASS = '通過', EV_A = '始点', EV_B = '終点', EV_PHOTO = '写真';
+  const r1 = v => v == null || !isFinite(v) ? null : Math.round(v * 10) / 10;
+  const avg = a => a.length ? a.reduce((x, y) => x + y, 0) / a.length : null;
+  const posNum = (v, d) => { const n = num(v); return n != null && n > 0 ? n : d; };
+  const fmt1 = v => v == null ? '—' : (Math.round(v * 10) / 10).toLocaleString('ja-JP', { maximumFractionDigits: 1 });
+  const fmt0 = v => v == null ? '—' : Math.round(v).toLocaleString('ja-JP');
+
+  function point(p, i) {
+    p = p || {};
+    const x = p.x == null || p.x === '' ? null : +p.x, y = p.y == null || p.y === '' ? null : +p.y;
+    return { id: str(p.id) || 'm' + ((i || 0) + 1), x: isFinite(x) ? x : null, y: isFinite(y) ? y : null,
+      種類: MKINDS.includes(p.種類) ? p.種類 : '作業時間', 名前: str(p.名前), 対象: str(p.対象), 担当: str(p.担当),
+      目標: str(p.目標), 要素: (Array.isArray(p.要素) ? p.要素 : str(p.要素).split(/[、,，\n]/)).map(str).filter(Boolean),
+      距離: str(p.距離), 個数: str(p.個数), 人数: str(p.人数), メモ: str(p.メモ) };
+  }
+  const ptNo = (pts, p) => 'M' + ((pts || []).indexOf(p) + 1);
+  /** 担当が自分か（空白・全角半角を問わない。担当が空のポイントは全員のもの） */
+  const sameName = (a, b) => nfkc(a).replace(/\s+/g, '') === nfkc(b).replace(/\s+/g, '');
+  const mine = (p, me) => !str(p.担当) || (!!str(me) && sameName(p.担当, me));
+
+  /** 1回の計測の集計 */
+  function measureStats(m) {
+    m = m || {};
+    const ev = (m.ev || []).filter(e => e && isFinite(+e.t)).map(e => ({ t: +e.t, k: str(e.k) })).sort((a, b) => a.t - b.t);
+    const len = Math.max(posNum(m.長さ, 0), ev.length ? ev[ev.length - 1].t : 0);
+    const out = { 種類: m.種類 === '能力' ? '能力' : '作業時間', 長さ: r1(len), n: 0, 値: null, 単位: '個/h', 文字: '', 要素: [], サイクル: [], 間隔: null, 速度: null };
+    // 始点→終点（速度。距離があれば m/min）
+    const sp = [], dist = posNum(m.距離, null);
+    let a = null;
+    for (const e of ev) { if (e.k === EV_A) a = e.t; else if (e.k === EV_B && a != null) { if (e.t > a) sp.push(e.t - a); a = null; } }
+    if (sp.length) { const v = sp.map(dt => dist ? dist / dt * 60 : null).filter(x => x != null);
+      out.速度 = { n: sp.length, 秒: r1(avg(sp)), 平均: v.length ? r1(avg(v)) : null, 最小: v.length ? r1(Math.min(...v)) : null, 最大: v.length ? r1(Math.max(...v)) : null }; }
+    if (out.種類 === '能力') {
+      const ps = ev.filter(e => e.k === EV_PASS).map(e => e.t);
+      const gaps = ps.slice(1).map((t, i) => t - ps[i]);
+      out.n = ps.length;
+      if (gaps.length) out.間隔 = { 平均: r1(avg(gaps)), 最小: r1(Math.min(...gaps)), 最大: r1(Math.max(...gaps)) };
+      //  流れているときの能力＝最初から最後の通過まで（n−1 個の間隔）。計測時間あたり＝止まっている時間も込み
+      out.値 = ps.length >= 2 && ps[ps.length - 1] > ps[0] ? 3600 * (ps.length - 1) / (ps[ps.length - 1] - ps[0]) : null;
+      out.時間あたり = len > 0 && ps.length ? 3600 * ps.length / len : null;
+      out.文字 = out.値 != null ? `${fmt0(out.値)} 個/h（通過 ${ps.length}・間隔 ${fmt1(out.間隔.平均)}秒）` : ps.length ? `通過 ${ps.length}（2つ以上で能力が出ます）` : '';
+      if (out.速度 && out.速度.平均 != null) out.文字 += `${out.文字 ? '・' : ''}速度 ${fmt1(out.速度.平均)} m/min`;
+      return out;
+    }
+    //  作業時間：要素のボタン＝その要素の始まり。次の印まで（最後は計測の終わりまで）がその要素の時間。区切り＝1サイクルの終わり
+    const marks = ev.filter(e => e.k !== EV_PHOTO && e.k !== EV_A && e.k !== EV_B);
+    const segs = [];
+    marks.forEach((e, i) => { const end = i + 1 < marks.length ? marks[i + 1].t : len; const d = end - e.t; if (d <= 0) return;
+      segs.push({ k: e.k === EV_CYCLE ? '（間）' : e.k, d }); });
+    const by = new Map();
+    segs.forEach(s => { const o = by.get(s.k) || { 要素: s.k, 回数: 0, 合計: 0, 最小: Infinity, 最大: 0 }; o.回数++; o.合計 += s.d; o.最小 = Math.min(o.最小, s.d); o.最大 = Math.max(o.最大, s.d); by.set(s.k, o); });
+    const total = segs.reduce((x, s) => x + s.d, 0);
+    out.要素 = [...by.values()].map(o => ({ 要素: o.要素, 回数: o.回数, 平均: r1(o.合計 / o.回数), 最小: r1(o.最小), 最大: r1(o.最大), 合計: r1(o.合計), 割合: total ? Math.round(o.合計 / total * 100) : 0 }));
+    const cuts = marks.filter(e => e.k === EV_CYCLE).map(e => e.t);
+    let st = marks.length ? marks[0].t : 0;
+    cuts.forEach(t => { if (t > st) out.サイクル.push(r1(t - st)); st = t; });
+    const cyc = out.サイクル.length ? avg(out.サイクル) : (total > 0 ? total : null);
+    const pcs = posNum(m.個数, 1), ppl = posNum(m.人数, 1);
+    out.n = out.サイクル.length || (segs.length ? 1 : 0);
+    out.サイクル秒 = r1(cyc);
+    out.一人 = cyc ? 3600 * pcs / cyc : null;
+    out.値 = out.一人 != null ? out.一人 * ppl : null;
+    out.文字 = cyc ? `サイクル ${fmt1(cyc)}秒（${out.n}回）・${fmt0(out.一人)} 個/h（1人）${ppl > 1 ? `・${ppl}人で ${fmt0(out.値)} 個/h` : ''}` : '';
+    return out;
+  }
+  /** 目標（個/h）と比べた判定。目標が無ければ '' */
+  function judgeOf(target, v) { const t = posNum(target, null); if (t == null || v == null) return ''; return v >= t ? 'OK' : '不足'; }
+
+  /** 1つのポイントの計測をまとめた結果（何人が何回測っても1つ）。能力＝通過の合計÷流れていた時間の合計、作業時間＝サイクルの合計÷時間の合計 */
+  function pointResult(p, ms) {
+    p = p || {}; ms = (ms || []).filter(m => m && (m.pt === p.id));
+    const sts = ms.map(m => ({ m, s: measureStats(m) }));
+    const who = [...new Set(ms.map(m => str(m.測った人)).filter(Boolean))];
+    const res = { 回数: ms.length, 測った人: who, 値: null, 単位: '個/h', 文字: '', 判定: '' };
+    if (!ms.length) return res;
+    if ((p.種類 || ms[0].種類) === '能力') {
+      let n = 0, span = 0, pass = 0, sp = [];
+      sts.forEach(({ m, s }) => { const ps = (m.ev || []).filter(e => str(e.k) === EV_PASS).map(e => +e.t).sort((a, b) => a - b);
+        pass += ps.length; if (ps.length >= 2) { n += ps.length - 1; span += ps[ps.length - 1] - ps[0]; } if (s.速度 && s.速度.平均 != null) sp.push(s.速度.平均); });
+      res.値 = span > 0 ? 3600 * n / span : null;
+      res.文字 = res.値 != null ? `${fmt0(res.値)} 個/h（通過 ${pass}・${ms.length}回）` : `通過 ${pass}`;
+      if (sp.length) { res.速度 = r1(avg(sp)); res.文字 += `・速度 ${fmt1(res.速度)} m/min`; }
+    } else {
+      let T = 0, pcs = 0, ppl = 1;
+      sts.forEach(({ m, s }) => { const c = s.サイクル.length ? s.サイクル : (s.サイクル秒 ? [s.サイクル秒] : []);
+        c.forEach(x => { T += x; pcs += posNum(m.個数, 1); }); ppl = Math.max(ppl, posNum(m.人数, 1)); });
+      const one = T > 0 ? 3600 * pcs / T : null;
+      res.サイクル秒 = T > 0 && pcs ? r1(T / sts.reduce((x, { s }) => x + (s.サイクル.length || (s.サイクル秒 ? 1 : 0)), 0)) : null;
+      res.一人 = one; res.値 = one != null ? one * ppl : null;
+      res.文字 = one != null ? `サイクル ${fmt1(res.サイクル秒)}秒・${fmt0(one)} 個/h（1人）${ppl > 1 ? `・${ppl}人で ${fmt0(res.値)} 個/h` : ''}` : '';
+    }
+    res.判定 = judgeOf(p.目標, res.値);
+    if (res.判定 && posNum(p.目標, null)) res.比 = Math.round(res.値 / posNum(p.目標, 1) * 100);
+    return res;
+  }
+
+  /**
+   * 複数の結果（ノートの JSON の compass ブロック。人ごとに1つ）の調査ポイントと計測を、ポイントの id でまとめる。
+   *   返り値 [{ point, no, 計測:[{…計測, 測った人, file}], 結果 }]（種の並び → 現場で足したもの）
+   */
+  function mergePoints(blocks) {
+    const map = new Map(), order = [];
+    (blocks || []).forEach(b => {
+      const cp = b && (b.compass || b); if (!cp) return;
+      (cp.調査ポイント || []).forEach(p => { const id = str(p.id); if (!id) return;
+        if (!map.has(id)) { map.set(id, { point: point(p), 計測: [] }); order.push(id); }
+        else { const o = map.get(id).point; if (o.x == null && p.x != null) { o.x = +p.x; o.y = +p.y; } } });
+      (cp.計測 || []).forEach(m => { const id = str(m.pt); if (!id || !map.has(id)) return; const e = map.get(id);
+        if (!e.計測.some(x => x.id === m.id)) e.計測.push(Object.assign({}, m, { file: str(b.file) })); });
+    });
+    return order.map((id, i) => { const e = map.get(id); return { point: e.point, no: 'M' + (i + 1), 計測: e.計測, 結果: pointResult(e.point, e.計測) }; });
+  }
+  /** まとめた結果 → CSV の行（案件フォルダの 現場調査/計測まとめ_<日付>.csv） */
+  function measureCsvRows(merged) {
+    const rows = [['No', '種類', '名前', '対象', '担当', '目標(個/h)', '結果(個/h)', '判定', '目標比(%)', 'サイクル(秒)', '速度(m/min)', '回数', '測った人', '方法', '各回の結果']];
+    (merged || []).forEach(e => { const p = e.point, r = e.結果;
+      rows.push([e.no, p.種類, p.名前, p.対象, p.担当, p.目標, r.値 != null ? Math.round(r.値) : '', r.判定, r.比 != null ? r.比 : '', r.サイクル秒 != null ? r.サイクル秒 : '', r.速度 != null ? r.速度 : '',
+        r.回数, r.測った人.join('・'), [...new Set(e.計測.map(m => str(m.方法)))].join('・'), e.計測.map(m => `${str(m.測った人) || '?'}：${measureStats(m).文字}`).join(' ／ ')]); });
+    return rows;
+  }
+
+  /** 写真（JPEG）の撮った時刻を EXIF から（DateTimeOriginal＋SubSecTimeOriginal）。読めなければ null。端末の時刻のまま（時差は見ない） */
+  function exifTime(buf) {
+    try {
+      const dv = new DataView(buf instanceof ArrayBuffer ? buf : buf.buffer);
+      if (dv.getUint16(0) !== 0xFFD8) return null;
+      let off = 2;
+      while (off + 4 < dv.byteLength) {
+        const mk = dv.getUint16(off), size = dv.getUint16(off + 2);
+        if (mk === 0xFFE1 && dv.getUint32(off + 4) === 0x45786966) {
+          const t0 = off + 10, le = dv.getUint16(t0) === 0x4949;
+          const u16 = o => dv.getUint16(t0 + o, le), u32 = o => dv.getUint32(t0 + o, le);
+          const ascii = (o, n) => { let s = ''; for (let i = 0; i < n; i++) { const c = dv.getUint8(t0 + o + i); if (!c) break; s += String.fromCharCode(c); } return s; };
+          const tags = ifd => { const n = u16(ifd), o = {}; for (let i = 0; i < n; i++) { const e = ifd + 2 + i * 12, tag = u16(e), cnt = u32(e + 4);
+            o[tag] = { type: u16(e + 2), cnt, val: cnt > 4 ? u32(e + 8) : e + 8, raw: u32(e + 8) }; } return o; };
+          const i0 = tags(u32(4)); const ex = i0[0x8769] ? tags(i0[0x8769].raw) : {};
+          const s = v => v ? ascii(v.val, v.cnt) : '';
+          const dt = s(ex[0x9003]) || s(i0[0x0132]);
+          const m = dt.match(/(\d{4}):(\d\d):(\d\d) (\d\d):(\d\d):(\d\d)/); if (!m) return null;
+          const sub = s(ex[0x9291]).replace(/\D/g, '');
+          return new Date(+m[1], +m[2] - 1, +m[3], +m[4], +m[5], +m[6]).getTime() + (sub ? Math.round(Number('0.' + sub) * 1000) : 0);
+        }
+        if ((mk & 0xFF00) !== 0xFF00 || mk === 0xFFDA) break;
+        off += 2 + size;
+      }
+    } catch (e) { /* 読めない写真 */ }
+    return null;
+  }
+
+  // ── GPS で写真の位置を図面に置く（2026-11-09 利用者「GPS で撮影した写真のレイアウト上の位置を自動取得できるように」）──
+  //  ・図面（PDF を画像にしたもの）は緯度・経度を知らない → 現場で「ここを基準点にする」を2か所以上（建屋の角など）押して、
+  //    その場の現在地と図面の位置の組から、回転・縮尺・平行移動（相似変換）を最小二乗で決める（geoFit）。
+  //  ・緯度・経度は、1点目を原点にした平面のメートル（東・北）に直してから使う（数百 m の倉庫なら誤差は無視できる）。
+  //  ・★建屋の中は GPS が大きくずれる（屋根で電波が届かない。10〜30m は珍しくない）→ ずれの見込み（acc）が GEO_MAX_ACC より大きい写真は置かない。
+  //  ・図面の向き：画像は下が +y。北（n）を -y 側にとって鏡にしない（q = e − i·n）。
+  const GEO_MAX_ACC = 15;           // m。これより悪い現在地では写真を図面に自動で置かない
+  const R_EARTH = 6378137;
+  /** 原点 o から p まで、東 e・北 n のメートル */
+  function geoMeters(o, p) {
+    const k = Math.PI / 180;
+    return { e: (p.lon - o.lon) * k * R_EARTH * Math.cos(o.lat * k), n: (p.lat - o.lat) * k * R_EARTH };
+  }
+  const gnum = v => typeof v === 'number' && isFinite(v);
+  /**
+   * 基準点（{x, y, lat, lon}・2つ以上）から図面への相似変換。
+   *   返り値 { o, a:[re,im], b:[re,im], pxPerM, rot（度。北が画像の上なら 0）, n, spanM（基準点のいちばん離れた距離）, resid（3点以上のときのずれ m・2点は null）}
+   *   基準点が近すぎる（3m 未満）・足りないときは null
+   */
+  function geoFit(refs) {
+    const r = (refs || []).filter(p => p && gnum(p.lat) && gnum(p.lon) && gnum(p.x) && gnum(p.y));
+    if (r.length < 2) return null;
+    const o = { lat: r[0].lat, lon: r[0].lon };
+    const q = r.map(p => { const m = geoMeters(o, p); return [m.e, -m.n]; }), P = r.map(p => [p.x, p.y]);
+    const mean = a => [a.reduce((s, v) => s + v[0], 0) / a.length, a.reduce((s, v) => s + v[1], 0) / a.length];
+    const mq = mean(q), mp = mean(P);
+    let n0 = 0, n1 = 0, den = 0, span = 0;
+    for (let i = 0; i < r.length; i++) {
+      const dq = [q[i][0] - mq[0], q[i][1] - mq[1]], dp = [P[i][0] - mp[0], P[i][1] - mp[1]];
+      n0 += dp[0] * dq[0] + dp[1] * dq[1]; n1 += dp[1] * dq[0] - dp[0] * dq[1]; den += dq[0] * dq[0] + dq[1] * dq[1];
+      for (let j = 0; j < i; j++) span = Math.max(span, Math.hypot(q[i][0] - q[j][0], q[i][1] - q[j][1]));
+    }
+    if (span < 3 || !(den > 0)) return null;
+    const a = [n0 / den, n1 / den], b = [mp[0] - (a[0] * mq[0] - a[1] * mq[1]), mp[1] - (a[1] * mq[0] + a[0] * mq[1])];
+    const pxPerM = Math.hypot(a[0], a[1]);
+    let resid = null;
+    if (r.length >= 3) {
+      let ss = 0;
+      for (let i = 0; i < r.length; i++) { const x = a[0] * q[i][0] - a[1] * q[i][1] + b[0], y = a[1] * q[i][0] + a[0] * q[i][1] + b[1]; ss += (x - P[i][0]) ** 2 + (y - P[i][1]) ** 2; }
+      resid = Math.sqrt(ss / r.length) / pxPerM;
+    }
+    return { o, a, b, pxPerM, rot: Math.atan2(a[1], a[0]) * 180 / Math.PI, n: r.length, spanM: span, resid };
+  }
+  /** 緯度・経度 → 図面の位置（画素） */
+  function geoToPx(f, p) {
+    const m = geoMeters(f.o, p), qx = m.e, qy = -m.n;
+    return { x: f.a[0] * qx - f.a[1] * qy + f.b[0], y: f.a[1] * qx + f.a[0] * qy + f.b[1] };
+  }
+  /** 方位（北から時計回りの度。iPhone の電子コンパス）→ 図面の向き（ピンの扇＝画像の +x が 0・下が 90）。45度きざみ（ピンの向きの選び方と同じ） */
+  function headingToDir(f, h) {
+    if (!f || !gnum(h)) return null;
+    let d = Math.round((h - 90 + f.rot) / 45) * 45;
+    d = ((d % 360) + 540) % 360 - 180;
+    return d === -180 ? 180 : d;
+  }
+  /** 基準点から出した縮尺と、縮尺合わせ（mm/画素）の差（+0.05＝GPS のほうが 5% 大きい）。どちらか無ければ null */
+  function geoScaleDiff(f, mmPerPx) { return f && gnum(mmPerPx) && mmPerPx > 0 ? (1000 / f.pxPerM) / mmPerPx - 1 : null; }
+  /**
+   * 写真の位置（{lat, lon, acc}）を図面に置けるか。{ ok, x, y, why（'acc'＝ずれが大きい／'out'＝図面の外／'nofit'＝基準点が足りない）}
+   *   図面の外は、縦横 5% までの外側なら縁に寄せて置く（基準点のずれの分）
+   */
+  function geoPlace(f, g, w, h, maxAcc) {
+    if (!f) return { ok: false, why: 'nofit' };
+    if (!g || !gnum(g.lat) || !gnum(g.lon)) return { ok: false, why: 'nogeo' };
+    if (gnum(g.acc) && g.acc > (maxAcc || GEO_MAX_ACC)) return { ok: false, why: 'acc' };
+    const p = geoToPx(f, g), mx = w * 0.05, my = h * 0.05;
+    if (p.x < -mx || p.y < -my || p.x > w + mx || p.y > h + my) return { ok: false, why: 'out', x: p.x, y: p.y };
+    return { ok: true, x: Math.min(w, Math.max(0, p.x)), y: Math.min(h, Math.max(0, p.y)) };
+  }
+  /** 何回か取った現在地をまとめる（ずれの見込みの逆二乗で重み付け）。acc はいちばん良いものより良くしない（GPS のずれは続けて同じ向きに出やすい） */
+  function geoAvg(fixes) {
+    const r = (fixes || []).filter(p => p && gnum(p.lat) && gnum(p.lon));
+    if (!r.length) return null;
+    let sw = 0, la = 0, lo = 0;
+    r.forEach(p => { const w = 1 / Math.max(1, gnum(p.acc) ? p.acc : 50) ** 2; sw += w; la += p.lat * w; lo += p.lon * w; });
+    return { lat: la / sw, lon: lo / sw, acc: Math.min.apply(null, r.map(p => gnum(p.acc) ? p.acc : 50)), n: r.length };
+  }
+  /** JPEG の EXIF の GPS（{lat, lon, acc?, heading?}）。無ければ null。★iPhone の Safari はライブラリから選んだ写真の位置を外して渡すことが多い */
+  function exifGps(buf) {
+    try {
+      const dv = new DataView(buf instanceof ArrayBuffer ? buf : buf.buffer);
+      if (dv.getUint16(0) !== 0xFFD8) return null;
+      let off = 2;
+      while (off + 4 < dv.byteLength) {
+        const mk = dv.getUint16(off), size = dv.getUint16(off + 2);
+        if (mk === 0xFFE1 && dv.getUint32(off + 4) === 0x45786966) {
+          const t0 = off + 10, le = dv.getUint16(t0) === 0x4949;
+          const u16 = o => dv.getUint16(t0 + o, le), u32 = o => dv.getUint32(t0 + o, le);
+          const tags = ifd => { const n = u16(ifd), o = {}; for (let i = 0; i < n; i++) { const e = ifd + 2 + i * 12; o[u16(e)] = { type: u16(e + 2), cnt: u32(e + 4), at: e + 8, raw: u32(e + 8) }; } return o; };
+          const i0 = tags(u32(4)); if (!i0[0x8825]) return null;
+          const gp = tags(i0[0x8825].raw);
+          const ch = t => t ? String.fromCharCode(dv.getUint8(t0 + t.at)) : '';
+          const rat = (t, i) => { const o = t.raw + i * 8, d = u32(o + 4); return d ? u32(o) / d : 0; };
+          const dms = t => t && t.cnt >= 3 ? rat(t, 0) + rat(t, 1) / 60 + rat(t, 2) / 3600 : null;
+          let lat = dms(gp[2]), lon = dms(gp[4]);
+          if (lat == null || lon == null || (lat === 0 && lon === 0)) return null;
+          if (ch(gp[1]) === 'S') lat = -lat; if (ch(gp[3]) === 'W') lon = -lon;
+          const out = { lat, lon };
+          if (gp[0x1F]) out.acc = rat(gp[0x1F], 0);                 // GPSHPositioningError（iPhone が書く）
+          if (gp[0x11]) out.heading = rat(gp[0x11], 0);              // GPSImgDirection（T＝真北・M＝磁北。分けない）
+          return out;
+        }
+        if ((mk & 0xFF00) !== 0xFF00 || mk === 0xFFDA) break;
+        off += 2 + size;
+      }
+    } catch (e) { /* 読めない写真 */ }
+    return null;
+  }
+
+  const API = { GEO_MAX_ACC, geoMeters, geoFit, geoToPx, headingToDir, geoScaleDiff, geoPlace, geoAvg, exifGps,
+    MKINDS, MWAYS, WORK_ELEMENTS, EV_CYCLE, EV_PASS, EV_A, EV_B, EV_PHOTO, point, ptNo, mine, sameName, measureStats, judgeOf, pointResult, mergePoints, measureCsvRows, exifTime, SEED_SCHEMA, OUT_SCHEMA, TYPES, typeLabel, PACK, CHECKS, applicable, drawAnns, prepOf, prepFromSeed, KP_TEMPLATES, checkItem, ASK_HEARING, ASK_SCREENING, askItems, pending, BLD_MAP, HEAR_MAP, OPE_MAP, MNAME, num, toCompass, fileStem, makeSeed, fromSeed, checkHints, stdJudge, importPlan, applyRows, guessTypes, stamp, today };
   root.NOTECOMPASS = API;
   if (typeof module !== 'undefined' && module.exports) module.exports = API;
 })(typeof self !== 'undefined' ? self : (typeof globalThis !== 'undefined' ? globalThis : this));
@@ -1080,7 +1666,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var r,n,i,a,
 <script>
 'use strict';
 /* 版（build-note.mjs が casedb.js の BUILD と同じ日付を入れる。帯の左の版と同じ決まり＝不具合の連絡に使う） */
-const BUILD = '2026.11.04';
+const BUILD = '2026.11.09';
 /* pdf.js の worker は同梱した pdf.worker.min.js（window.pdfjsWorker）をそのまま使う（通信なし）。CMap（和文フォントの対応表）は同梱していない＝
    文字が埋め込まれていない PDF では文字が出ないことがある（線・図形は出る）。 */
 const PDF_CMAPS='';
@@ -1122,7 +1708,9 @@ const ICON={
   text:I('<path d="M5 6h14M12 6v13"/>'),
   talk:I('<path d="M4 5h16v11H9l-5 4z"/><path d="M8 9h8M8 12h5"/>'),
   spark:I('<path d="M12 3l2 6 6 2-6 2-2 6-2-6-6-2 6-2z"/>'),
-  mic:I('<path d="M12 3a3 3 0 0 1 3 3v6a3 3 0 0 1-6 0V6a3 3 0 0 1 3-3z"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/>')
+  mic:I('<path d="M12 3a3 3 0 0 1 3 3v6a3 3 0 0 1-6 0V6a3 3 0 0 1 3-3z"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/>'),
+  watch:I('<circle cx="12" cy="13.5" r="7"/><path d="M12 13.5V9.5M10 3h4M12 3v3.5M18.2 7.2l1.5-1.5"/>'),
+  video:I('<path d="M3 7h12v10H3z"/><path d="M15 10.5l6-3v9l-6-3"/>')
 };
 
 /* ---------- storage ---------- */
@@ -1156,13 +1744,8 @@ function dataURLToBlob(d){ const [h,b64]=d.split(','); const type=(h.match(/data
 const TYPES=[{k:'conv',label:'コンベヤ導入'},{k:'agv',label:'AGV/AMR導入'},{k:'layout',label:'倉庫レイアウト'},{k:'retro',label:'更新・改造'}];
 const typeLabel=k=>(TYPES.find(t=>t.k===k)||{}).label||k;
 // [key, label, kind(num|text|judge), unit, required]
-const CHECKS=[
-  {g:'common',title:'共通（建屋）',items:[['ceil','天井高さ','num','mm',1],['beam','梁下高さ','num','mm',1],['span','柱スパン','text','mm',1],['col','柱サイズ','text','mm',1],['load','床耐荷重','num','kg/m²',1],['floor','床材・段差・勾配','text','',0],['dock','搬入口・搬入経路の寸法','text','mm',1],['fire','防火区画・防火シャッター','judge','',1],['spr','スプリンクラー・照明の位置','judge','',0],['power','動力電源の位置と容量','text','',1],['air','エアー源','judge','',0],['temp','空調・温度帯','text','',0]]},
-  {g:'conv',title:'コンベヤ導入',items:[['lineh','既存ラインの高さ','num','mm',1],['joint','接続部の位置と高さ','text','',1],['goods','扱う荷物（サイズ・重量・荷姿）','text','',1],['peak','処理量（ピーク時）','text','',1],['flow','作業者の動線','judge','',0],['anchor','床アンカーの可否','judge','',1]]},
-  {g:'agv',title:'AGV/AMR導入',items:[['aisle','走行路の通路幅','num','mm',1],['flat','床の平滑度・継ぎ目・段差','judge','',1],['wifi','Wi-Fiの電波状況','judge','',1],['charge','充電ステーションの設置場所','text','',1],['door','自動ドア・EV・シャッター連動','text','',0],['mix','人・車両との混在','judge','',1]]},
-  {g:'layout',title:'倉庫レイアウト',items:[['rack','保管品目とラックの種類','text','',1],['berth','入出荷バースの数と位置','text','',1],['fork','フォークリフトの通路幅','num','mm',0],['expand','将来の拡張スペース','text','',0]]},
-  {g:'retro',title:'更新・改造',items:[['maker','既存設備のメーカー・型式・年式','text','',1],['panel','制御盤の位置','text','',1],['host','上位システム（WMS・WCS）','text','',1],['stop','停止できる期間・時間帯','text','',1],['remove','撤去品の扱い','text','',0]]}
-];
+//  チェック項目は note.compass.js（案件管理の「現場の結果を見る」と同じもの）
+const CHECKS=NC.CHECKS;
 const TAGS=['柱','梁','天井','床','搬入口','扉・シャッター','電源','障害物','既存設備','その他'];
 const PACK=['ケース','オリコン','パレット','袋物','バラ','その他'];
 const TEMP=['常温','定温','冷蔵','冷凍'];
@@ -1192,7 +1775,10 @@ const HEAR=[
 ];
 const HEAR_KEYS=HEAR.flatMap(g=>g.fields.map(f=>f[0]));
 function blankHearing(){ const h={打ち合わせメモ:'',導入目的:[],ai:[]}; for(const k of HEAR_KEYS) h[k]=''; return h; }
-const hearingCount=h=>HEAR_KEYS.filter(k=>String(h[k]||'').trim()).length+(h.導入目的.length?1:0);
+//  ★2026-11-09 利用者「ヒヤリングは別のツール（コンパスヒヤリング）でまとめる」→ ノートは HEAR の欄を画面に出さない。
+//    入っている値（前の版で入れたもの）は消さずに、読むだけで見せて、取り込みでは今までどおり送る（legacyHearBox）。
+const legacyHear=h=>HEAR_KEYS.filter(k=>String(h[k]||'').trim()).length+((h.導入目的||[]).length?1:0);
+const hearingCount=s=>legacyHear(s.hearing||{})+(s.聞く項目||[]).filter(a=>String(a.値||'').trim()).length;
 //  前の版の鍵（英語）→ いまの鍵。端末に残っている調査・前の版のバックアップを読むときに付け替える
 const OLDKEYS={
   survey:{customer:'客先名',site:'建屋名称',address:'現場住所',date:'調査日',surveyor:'調査者',types:'案件種別',areas:'エリア',caseNo:'物件番号',caseKey:'案件キー',caseName:'案件名'},
@@ -1206,13 +1792,15 @@ function migrate(s){
   if(!s.hearing) s.hearing=blankHearing(); n+=renameKeys(s.hearing,OLDKEYS.hearing);
   const b=blankHearing(); for(const k in b) if(s.hearing[k]==null) s.hearing[k]=b[k];
   for(const it of (s.items||[])) n+=renameKeys(it,OLDKEYS.item);
+  for(const ph of (s.photos||[])) if(ph&&ph.打ち合わせメモ!=null){ if(!ph.memo) ph.memo=ph.打ち合わせメモ; delete ph.打ち合わせメモ; n++; }
+  if(!Array.isArray(s.確認点)) s.確認点=[]; if(!Array.isArray(s.聞く項目)) s.聞く項目=[]; if(!Array.isArray(s.調査ポイント)) s.調査ポイント=[]; if(!Array.isArray(s.計測)) s.計測=[];
   for(const k of ['物件番号','案件キー','案件名','客先名','建屋名称','現場住所','調査者']) if(s[k]==null) s[k]='';
   if(!Array.isArray(s.案件種別)) s.案件種別=['conv']; if(!Array.isArray(s.エリア)) s.エリア=[]; if(s.seed===undefined) s.seed=null;
   if(!s.v){ const r=s.checks&&s.checks.load; if(r&&r.val!=null&&String(r.val).trim()!==''){ const x=Number(String(r.val).replace(/[^\d.]/g,'')); if(isFinite(x)&&x>0&&x<100) r.val=String(Math.round(x*1000)); } s.v=2; n++; }
   return n>0;
 }
 //  鍵はコンパス（案件管理）の列と同じ言葉（客先名・建屋名称・現場住所・物件番号・案件キー・案件名）。物件番号・案件キー・案件名・seed＝「案件の種」から来たもの（手で作った調査は空）
-function blankSurvey(){ return {id:uid(),v:2,客先名:'',建屋名称:'',現場住所:'',調査日:today(),調査者:LS.get('surveyor',''),案件種別:['conv'],エリア:[],photos:[],pins:[],checks:{},items:[],drawing:null,hearing:blankHearing(),sample:false,物件番号:'',案件キー:'',案件名:'',seed:null,createdAt:Date.now(),updatedAt:Date.now()}; }
+function blankSurvey(){ return {id:uid(),v:2,客先名:'',建屋名称:'',現場住所:'',調査日:today(),調査者:LS.get('surveyor',''),案件種別:['conv'],エリア:[],photos:[],pins:[],checks:{},items:[],drawing:null,確認点:[],聞く項目:[],調査ポイント:[],計測:[],hearing:blankHearing(),sample:false,物件番号:'',案件キー:'',案件名:'',seed:null,createdAt:Date.now(),updatedAt:Date.now()}; }
 /** 案件管理の「案件の種」（compass-survey-seed/1）から新しい調査を作る。空欄だけに入れる（note.compass.js の fromSeed） */
 async function startFromSeed(seed){
   if(!NC||!seed||seed.schema!==NC.SEED_SCHEMA) throw new Error('seed');
@@ -1223,6 +1811,12 @@ async function startFromSeed(seed){
   for(const k in f.hearing) if(f.hearing[k]) s.hearing[k]=f.hearing[k];
   s.items=f.items.map(it=>Object.assign({id:uid(),photoIds:[]},it));
   s.seed=f.seed;
+  //  事前準備（案件管理で用意した エリア・図面（縮尺つき）・確認点）
+  if(f.エリア.length) s.エリア=f.エリア;
+  if((f.調査ポイント||[]).length) s.調査ポイント=f.調査ポイント;
+  if(f.図面){ const blobId=await putBlob(dataURLToBlob(f.図面.画像)); s.drawing=Object.assign({blobId},f.図面.drawing); }
+  s.確認点=f.確認点.map(c=>Object.assign({},c,{id:c.id||uid()}));
+  s.聞く項目=f.聞く項目.map(a=>Object.assign({},a));
   //  同じ案件の調査がもうあれば、新しい調査として足す（上書きしない）。一覧で物件番号が見える
   await saveSurvey(s); state.surveys.push(s); state.cur=s.id; state.view='survey'; state.tab='check'; state.areaFilter=''; dv=null;
   return s;
@@ -1230,43 +1824,14 @@ async function startFromSeed(seed){
 /** 案件管理に入っている値（種）。チェック項目の下に「案件管理: …」で見せる */
 const seedHints=s=>(NC&&s&&s.seed&&s.seed.bld)?NC.checkHints(s.seed.bld):{};
 
-const state={surveys:[],view:'list',cur:null,tab:'photos',areaFilter:'',onlyEmpty:false,dmode:'move',focusPin:null,sheetOnClose:null,lastKey:'',ai:null,aiBusy:false,aiMsg:'',rFor:'internal'};
+const state={surveys:[],view:'list',cur:null,tab:'photos',areaFilter:'',onlyEmpty:false,dmode:'move',focusPin:null,sheetOnClose:null,lastKey:'',ai:null,aiBusy:false,aiMsg:'',rFor:'internal',mOnlyMine:true,placePt:null,focusMp:null};
 const cur=()=>state.surveys.find(s=>s.id===state.cur);
 async function saveSurvey(s){ s.updatedAt=Date.now(); try{ await DB.put('surveys',s); }catch(e){ toast('保存できませんでした。端末の空き容量を確認してください'); } }
 let saveT; function saveSoon(s){ clearTimeout(saveT); saveT=setTimeout(()=>saveSurvey(s),400); }
 
 /* ---------- annotations (drawn in image pixels) ---------- */
-function head(g,tip,from,size,fill){ const a=Math.atan2(tip.y-from.y,tip.x-from.x); g.beginPath(); g.moveTo(tip.x,tip.y); g.lineTo(tip.x-size*Math.cos(a-0.42),tip.y-size*Math.sin(a-0.42)); g.lineTo(tip.x-size*Math.cos(a+0.42),tip.y-size*Math.sin(a+0.42)); g.closePath(); g.fillStyle=fill; g.fill(); }
-function strokeTwice(g,lw,color,pathFn){ g.strokeStyle='rgba(255,255,255,.9)'; g.lineWidth=lw*2.6; pathFn(); g.stroke(); g.strokeStyle=color; g.lineWidth=lw; pathFn(); g.stroke(); }
-function drawAnns(g,anns,W){ const lw=Math.max(2,W/300), fs=Math.max(16,W/24); for(const a of anns||[]) drawAnn(g,a,lw,fs); }
-function drawAnn(g,a,lw,fs){
-  const RED='#E3342B', INK='#111';
-  g.save(); g.lineCap='round'; g.lineJoin='round';
-  if(a.type==='dim'){
-    const {p1,p2}=a, dx=p2.x-p1.x, dy=p2.y-p1.y, L=Math.hypot(dx,dy)||1, nx=-dy/L, ny=dx/L, t=fs*0.55;
-    strokeTwice(g,lw,INK,()=>{ g.beginPath(); g.moveTo(p1.x,p1.y); g.lineTo(p2.x,p2.y); g.moveTo(p1.x+nx*t,p1.y+ny*t); g.lineTo(p1.x-nx*t,p1.y-ny*t); g.moveTo(p2.x+nx*t,p2.y+ny*t); g.lineTo(p2.x-nx*t,p2.y-ny*t); });
-    head(g,p1,p2,lw*5,INK); head(g,p2,p1,lw*5,INK);
-    const label=a.v!=null&&a.v!==''?fmt(a.v):'?';
-    g.font=font(fs,600,true); const tw=g.measureText(label).width, bw=tw+fs*0.8, bh=fs*1.45, mx=(p1.x+p2.x)/2, my=(p1.y+p2.y)/2;
-    g.fillStyle='#F5B800'; g.strokeStyle=INK; g.lineWidth=Math.max(1.5,lw*0.6);
-    g.beginPath(); if(g.roundRect) g.roundRect(mx-bw/2,my-bh/2,bw,bh,fs*0.25); else g.rect(mx-bw/2,my-bh/2,bw,bh); g.fill(); g.stroke();
-    g.fillStyle=INK; g.textAlign='center'; g.textBaseline='middle'; g.fillText(label,mx,my+fs*0.04);
-  } else if(a.type==='arrow'){
-    strokeTwice(g,lw*1.1,RED,()=>{ g.beginPath(); g.moveTo(a.p1.x,a.p1.y); g.lineTo(a.p2.x,a.p2.y); });
-    head(g,a.p2,a.p1,lw*7,RED);
-  } else if(a.type==='circle'){
-    const cx=(a.p1.x+a.p2.x)/2, cy=(a.p1.y+a.p2.y)/2, rx=Math.abs(a.p2.x-a.p1.x)/2, ry=Math.abs(a.p2.y-a.p1.y)/2;
-    strokeTwice(g,lw*1.1,RED,()=>{ g.beginPath(); g.ellipse(cx,cy,Math.max(rx,1),Math.max(ry,1),0,0,Math.PI*2); });
-  } else if(a.type==='pen'){
-    strokeTwice(g,lw*1.1,RED,()=>{ g.beginPath(); a.pts.forEach((p,i)=>i?g.lineTo(p.x,p.y):g.moveTo(p.x,p.y)); });
-  } else if(a.type==='text'){
-    const s=a.s||'｜'; g.font=font(fs,700); const tw=g.measureText(s).width, pad=fs*0.35;
-    g.fillStyle='rgba(255,255,255,.92)'; g.strokeStyle=RED; g.lineWidth=Math.max(1.5,lw*0.6);
-    g.beginPath(); if(g.roundRect) g.roundRect(a.p1.x,a.p1.y,tw+pad*2,fs*1.5,fs*0.2); else g.rect(a.p1.x,a.p1.y,tw+pad*2,fs*1.5); g.fill(); g.stroke();
-    g.fillStyle=RED; g.textAlign='left'; g.textBaseline='middle'; g.fillText(s,a.p1.x+pad,a.p1.y+fs*0.77);
-  }
-  g.restore();
-}
+//  書き込みの絵は note.compass.js（案件管理の結果の画面と同じ絵）
+function drawAnns(g,anns,W){ NC.drawAnns(g,anns,W,font); }
 async function renderAnnotated(cv,ph,cssW,setStyle){
   const img=await getImg(ph.blobId); if(!img||!cv.isConnected&&setStyle) return;
   const dpr=window.devicePixelRatio||1, sc=cssW/ph.w;
@@ -1284,6 +1849,12 @@ async function drawThumbs(root=document){
     g.drawImage(img,(cv.width-dw)/2,(cv.height-dh)/2,dw,dh);
   }
 }
+/** 確認点（案件管理の事前準備で置いた「現場で確かめたい場所」）。橙の菱形に番号、済は緑 */
+function drawKp(g,x,y,label,done,k=1,sel=false){
+  g.save(); const r=15*k; g.beginPath(); g.moveTo(x,y-r); g.lineTo(x+r,y); g.lineTo(x,y+r); g.lineTo(x-r,y); g.closePath();
+  g.fillStyle=sel?'#fff':(done?'#2B7A4B':'#E07A00'); g.fill(); g.lineWidth=2.6*k; g.strokeStyle=sel?(done?'#2B7A4B':'#E07A00'):'#fff'; g.stroke();
+  g.fillStyle=sel?(done?'#2B7A4B':'#E07A00'):'#fff'; g.font=font(11*k,700,true); g.textAlign='center'; g.textBaseline='middle'; g.fillText(done?'✓':label,x,y+0.5*k); g.restore();
+}
 function drawPin(g,x,y,dir,label,k=1,sel=false){
   g.save();
   if(dir!=null){ const a=dir*Math.PI/180, R=42*k; g.beginPath(); g.moveTo(x,y); g.arc(x,y,R,a-0.45,a+0.45); g.closePath(); g.fillStyle='rgba(31,95,209,.32)'; g.fill(); g.strokeStyle='rgba(31,95,209,.9)'; g.lineWidth=1.3*k; g.stroke(); }
@@ -1293,26 +1864,41 @@ function drawPin(g,x,y,dir,label,k=1,sel=false){
 }
 
 /* ---------- sheets ---------- */
-function openSheet(html,opts={}){ const root=$('#sheetRoot'); root.innerHTML=`<button class="scrim" data-act="closeSheet" aria-label="閉じる" tabindex="-1"></button><div class="sheet" role="dialog" aria-modal="true">${html}</div>`; root.hidden=false; state.sheetOnClose=opts.onClose||null; const sh=$('.sheet',root); opts.onMount&&opts.onMount(sh); }
+/** 小窓の主なボタン（青の塗り・横いっぱい／青のボタンを含む横並び）を、下に固定した帯（.sheet-foot）へ移す。
+ *  iPhone SE など背の低い画面で、［保存］が小窓の外に隠れて見つからなかった（2026-11-04 利用者）。削除などの赤いボタンは中に残す */
+function sheetFoot(sh){
+  const pick=[...sh.querySelectorAll('.btn.primary.block, .addrow')].filter(el=>!el.closest('.sheet-foot')&&(el.classList.contains('addrow')?!!el.querySelector('.btn.primary'):true)&&!el.closest('.addrow:not(:has(.btn.primary))'));
+  const top=pick.filter(el=>!pick.some(o=>o!==el&&o.contains(el)));
+  if(!top.length) return;
+  const foot=document.createElement('div'); foot.className='sheet-foot'; top.forEach(el=>foot.appendChild(el)); sh.appendChild(foot);
+}
+function openSheet(html,opts={}){ const root=$('#sheetRoot'); root.innerHTML=`<button class="scrim" data-act="closeSheet" aria-label="閉じる" tabindex="-1"></button><div class="sheet" role="dialog" aria-modal="true">${html}</div>`; root.hidden=false; state.sheetOnClose=opts.onClose||null; const sh=$('.sheet',root); sheetFoot(sh); opts.onMount&&opts.onMount(sh); }
 function closeSheet(){ const r=$('#sheetRoot'); if(r.hidden) return; r.hidden=true; r.innerHTML=''; const f=state.sheetOnClose; state.sheetOnClose=null; f&&f(); }
 const shHead=t=>`<div class="sh-h"><h3>${t}</h3><button class="iconbtn" data-act="closeSheet" aria-label="閉じる">${ICON.x}</button></div>`;
 function confirmSheet(msg,okLabel,onOk){ openSheet(`${shHead('確認')}<p>${esc(msg)}</p><div class="addrow"><button class="btn" data-act="closeSheet">やめる</button><button class="btn danger" id="cfOk">${esc(okLabel)}</button></div>`,{onMount:sh=>{ $('#cfOk',sh).onclick=()=>{ closeSheet(); onOk(); }; }}); }
-function pickFile(kind,cb){ const inp=$('#f_'+kind); inp.value=''; inp.onchange=()=>{ const fs=[...(inp.files||[])]; if(fs.length) cb(fs); }; inp.click(); }
+function pickFile(kind,cb){ if(kind==='cam') state.tapGeo=GEO.on?{fix:GEO.now(),heading:GEO.head()}:null; const inp=$('#f_'+kind); inp.value=''; inp.onchange=()=>{ const fs=[...(inp.files||[])]; if(fs.length) cb(fs); }; inp.click(); }
 
 /* ---------- render ---------- */
-const TABS=[['hear','ヒアリング',ICON.talk],['photos','写真',ICON.cam],['drawing','図面',ICON.map],['check','チェック',ICON.check],['items','搬送物',ICON.box],['report','報告書',ICON.doc]];
+const TABS=[['hear','ヒアリング',ICON.talk],['photos','写真',ICON.cam],['drawing','図面',ICON.map],['meas','計測',ICON.watch],['check','チェック',ICON.check],['items','搬送物',ICON.box],['report','報告書',ICON.doc]];
 function render(){
   const app=$('#app'); const key=state.view+'|'+state.cur+'|'+state.tab; const m=$('#main'); const keep=(m&&key===state.lastKey)?m.scrollTop:0; state.lastKey=key;
   if(state.view==='list'){ app.innerHTML=viewList(); return; }
   const s=cur(); if(!s){ state.view='list'; return render(); }
+  if(s.geoOn&&!GEO.on) GEO.start(); else if(!s.geoOn&&GEO.on) GEO.stop();
   app.innerHTML=viewSurvey(s);
   const nm=$('#main'); if(nm&&keep) nm.scrollTop=keep;
   drawThumbs(app);
   if(state.tab==='drawing'&&s.drawing) dSetup(s);
 }
+/** コンパスヒヤリング（営業のスマホ）へ（2026-11-09 利用者「ノートとヒヤリングに相互リンク」）。
+ *  同じ公開先の hearing/（GitHub のリポジトリの hearing フォルダ）。https（と開発の localhost）のときだけ出す＝file:// や Claude の中では行き先が無い */
+function hearLink(){
+  const ok=location.protocol==='https:'||/^(localhost|127\.0\.0\.1)$/.test(location.hostname);
+  return ok?`<a class="btn sm applink" id="hearLink" href="./hearing/" title="打合せのヒヤリング（0次提案で聞くこと）を入れるアプリ「コンパスヒヤリング」を開きます">ヒヤリング</a>`:'';
+}
 function viewList(){
   const ss=[...state.surveys].sort((a,b)=>b.updatedAt-a.updatedAt);
-  return `<header class="bar"><div class="bar-in"><div class="brand"><span class="brand-mark" aria-hidden="true"></span><span>コンパスノート</span><span class="ver mono muted small" title="この画面の版（不具合の連絡に）">v${esc(BUILD)}</span></div><button class="btn primary sm" data-act="newSurvey">＋ 新しい調査</button></div></header>
+  return `<header class="bar"><div class="bar-in"><div class="brand"><svg class="cpmark" viewBox="0 0 64 64" aria-hidden="true" focusable="false"><path d="M50.1 17.8A23 23 0 1 0 50.1 46.2" fill="none" stroke="#FFFFFF" stroke-width="7" stroke-linecap="round"/><path d="M60 32L33 26.5 33 37.5Z" fill="#E0457B" stroke="none"/><path d="M19 32L33 26.5 33 37.5Z" fill="#7BA7E8" stroke="none"/><circle cx="33" cy="32" r="2.6" fill="#092162" stroke="none"/></svg><span>コンパスノート</span><span class="ver mono muted small" title="この画面の版（不具合の連絡に）">v${esc(BUILD)}</span></div>${hearLink()}<button class="btn primary sm" data-act="newSurvey">＋ 新しい調査</button></div></header>
   <main class="main" id="main"><div class="col">
   ${DB.persistent?'':'<div class="note warn"><b>この開き方では端末に保存できません。</b>画面を閉じると入力内容が消え、写真や PDF も渡せません（SharePoint アプリの内蔵ブラウザなど）。見るだけにして、調査は Claude の中か、ホーム画面に追加したノートで行ってください。</div>'}
   <div class="list-h"><h1>調査一覧</h1><span class="muted mono small">${ss.length}件</span></div>
@@ -1320,11 +1906,17 @@ function viewList(){
   ${ss.length?`<div class="scards">${ss.map(cardSurvey).join('')}</div>`:`<div class="empty"><p>まだ調査がありません。</p><p class="muted small">「新しい調査」から、顧客名と案件の種類を入れて始めます。</p></div>`}
   </div></main>`;
 }
+/** 残り（確認点のまだ・必須の未入力・NG なのに写真なし・現場で確かめることの空き）。short＝一覧のカード用の1行 */
+function pendHTML(s,short){ if(!NC) return ''; const p=NC.pending(s); if(!p.n) return short?'':'<div class="callout ok"><b>残りはありません</b><span>確認点・必須の項目・NG の写真・現場で確かめることは、すべて済んでいます。</span></div>';
+  const parts=[p.kp.length?`確認点 まだ ${p.kp.length}`:'',p.req.length?`必須の未入力 ${p.req.length}`:'',p.ngNoPhoto.length?`NG の写真なし ${p.ngNoPhoto.length}`:'',p.ask.length?`確かめること まだ ${p.ask.length}`:'',(p.mt||[]).length?`計測 まだ ${p.mt.length}`:''].filter(Boolean);
+  if(short) return `<div class="sc-pend">残り：${esc(parts.join('・'))}</div>`;
+  const li=(t,arr)=>arr.length?`<li><b>${esc(t)}</b>${esc(arr.join('、'))}</li>`:'';
+  return `<div class="callout warn pend"><b>帰る前に：残り ${p.n}件</b><ul>${li('確認点 まだ：',p.kp.map(c=>'K'+(s.確認点.indexOf(c)+1)+' '+c.内容))}${li('必須の未入力：',p.req)}${li('NG の写真なし：',p.ngNoPhoto)}${li('現場で確かめること まだ：',p.ask.map(a=>a.label))}${li('計測 まだ（自分の担当）：',(p.mt||[]).map(q=>mpNo(s,q)+' '+(q.名前||q.種類)))}</ul></div>`; }
 function cardSurvey(s){ const st=checkStats(s); return `<button class="scard" data-act="openSurvey" data-id="${s.id}">
   <div class="sc-top"><span>${s.sample?'<span class="badge">記入例</span>':''}${s.物件番号?`<span class="mono muted">${esc(s.物件番号)}</span>`:(s.案件キー?'<span class="badge">0次提案</span>':'')}</span><span class="mono muted">${esc(s.調査日)}</span></div>
   <div class="sc-name">${esc(s.客先名||'名称未設定')}</div><div class="sc-site">${esc([s.建屋名称,s.現場住所].filter(Boolean).join(' ・ '))}</div>
   <div class="chips">${s.案件種別.map(t=>`<span class="chip sm">${esc(typeLabel(t))}</span>`).join('')}</div>
-  <div class="sc-stats mono"><span>写真 ${s.photos.length}</span><span>搬送物 ${s.items.length}</span><span>チェック ${st.done}/${st.total}</span>${st.ng.length?`<span class="ng">NG ${st.ng.length}</span>`:''}${s.drawing?`<span>図面 ピン${s.pins.length}</span>`:''}</div></button>`; }
+  <div class="sc-stats mono"><span>写真 ${s.photos.length}</span><span>搬送物 ${s.items.length}</span><span>チェック ${st.done}/${st.total}</span>${st.ng.length?`<span class="ng">NG ${st.ng.length}</span>`:''}${s.drawing?`<span>図面 ピン${s.pins.length}</span>`:''}</div>${pendHTML(s,true)}</button>`; }
 function viewSurvey(s){
   const fill=state.tab==='drawing'&&s.drawing;
   return `<header class="bar"><div class="bar-in"><button class="iconbtn" data-act="back" aria-label="一覧に戻る">${ICON.back}</button><div class="ttl"><b>${esc(s.客先名||'名称未設定')}</b><span>${esc([s.物件番号||(s.案件キー?'0次提案':''),s.建屋名称,s.調査日].filter(Boolean).join(' ・ '))}</span></div><button class="btn sm" data-act="editSurvey">調査情報</button></div></header>
@@ -1333,24 +1925,26 @@ function viewSurvey(s){
 }
 const TABV={
   hear(s){
+    //  2026-11-09：ヒアリングシート（0次提案で聞く45欄）はコンパスヒヤリング（営業のスマホ）で入れる。
+    //  ノートに残すのは「現場で確かめること」（案件管理で空いている欄から準備で選んだもの）と、現場で聞いたことのメモ。
     const h=s.hearing;
     return `<div class="col">
+    <p class="muted small hnote" id="hrNote">ヒアリングシート（0次提案で聞く45欄）は<b>コンパスヒヤリング</b>で入れます。ここは、現場で確かめることと、現場で聞いたことのメモです。</p>
+    ${seedHearingBox(s)}
+    ${askBox(s)}
     <section class="card hmemo"><div class="hm-h"><h2>打ち合わせメモ</h2><span class="muted small mono">${h.打ち合わせメモ?fmt(h.打ち合わせメモ.length)+'字':''}</span></div>
     <div id="micBox" class="form">${micBox()}</div>
-    <textarea id="hr_memo" data-hr="打ち合わせメモ" rows="7" placeholder="例：担当は物流部の佐藤課長。出荷のピークは12月で1日3,000ケース。人が集まらないのが悩み…" aria-label="打ち合わせメモ">${esc(h.打ち合わせメモ)}</textarea>
+    <textarea id="hr_memo" data-hr="打ち合わせメモ" rows="7" placeholder="例：現場の佐藤さんの話。出荷のピークは12月で、夕方の積み込みが詰まる。シャッターは朝7時から開く…" aria-label="打ち合わせメモ">${esc(h.打ち合わせメモ)}</textarea>
     <div id="aiBox" class="form">${aiBox()}</div></section>
     <p class="muted small">客先：<b>${esc(s.客先名||'未設定')}</b>　<span>（客先名は「調査情報」で変更）</span></p>
-    ${seedHearingBox(s)}
-    ${HEAR.map(g=>`<section class="hgrp"><h2>${g.title}${g.internal?'<span class="int">社内のみ</span>':''}</h2>
-      ${g.purpose?`<div class="chips" role="group" aria-label="導入目的">${HEAR_PURPOSE.map(p=>`<button type="button" class="chip${h.導入目的.includes(p)?' on':''}" data-act="hrPurpose" data-v="${p}" aria-pressed="${h.導入目的.includes(p)}">${p}</button>`).join('')}</div>`:''}
-      ${g.fields.map(([k,l,t])=>`<label class="fld${h.ai.includes(k)?' aif':''}" data-hf="${k}">${l}${t==='area'?`<textarea id="hr_${k}" data-hr="${k}" rows="3">${esc(h[k])}</textarea>`:`<input id="hr_${k}" data-hr="${k}" value="${esc(h[k])}">`}</label>`).join('')}</section>`).join('')}
+    ${legacyHearBox(s)}
     </div>`;
   },
   photos(s){
     const list=s.photos.map((p,i)=>({p,i})).filter(({p})=>!state.areaFilter||p.area===state.areaFilter);
     return `<div class="col">
     ${s.エリア.length?`<div class="chips scroll-x"><button class="chip${!state.areaFilter?' on':''}" data-act="area" data-v="">すべて</button>${s.エリア.map(a=>`<button class="chip${state.areaFilter===a?' on':''}" data-act="area" data-v="${esc(a)}">${esc(a)}</button>`).join('')}</div>`:''}
-    <div class="addrow"><button class="btn primary" data-act="addCam">${ICON.cam}撮影する</button><button class="btn" data-act="addLib">ライブラリから</button></div>
+    <div class="addrow"><button class="btn primary" data-act="addCam">${ICON.cam}撮影する</button><button class="btn" data-act="addLib">ライブラリから</button></div>${s.drawing?`<div class="geoline">${geoChipHTML(s)}</div>`:''}
     ${list.length?`<div class="pgrid">${list.map(({p,i})=>`<button class="ph" data-act="openPhoto" data-id="${p.id}" aria-label="写真 P${pad2(i+1)}"><canvas data-thumb="${p.id}"></canvas><span class="pno mono">P${pad2(i+1)}</span>${s.pins.some(x=>x.photoId===p.id)?`<span class="pinb" title="図面ピンあり">${ICON.pin}</span>`:''}<span class="pmeta">${esc([p.area,...p.tags].filter(Boolean).join('・')||'未分類')}</span></button>`).join('')}</div>`
     :`<div class="empty"><p>${state.areaFilter?'このエリアの写真はまだありません。':'写真はまだありません。'}</p><p class="muted small">撮った写真に寸法線や矢印、文字を書き込めます。</p></div>`}
     </div>`;
@@ -1359,12 +1953,13 @@ const TABV={
     if(!s.drawing) return `<div class="dempty"><div class="col"><div class="empty big"><div class="plan-ico">${ICON.map}</div><h2>建屋図面を取り込む</h2><p class="muted">事前に入手したPDFの図面を取り込むと、写真を撮った位置と向きを図面上のピンで記録できます。</p><button class="btn primary" data-act="loadPdf">PDF図面を選ぶ</button><p class="muted small">DXFの取り込みは次の段階で対応します。</p></div></div></div>`;
     const d=s.drawing, m=state.dmode;
     return `<div class="dtools"><div class="seg" role="group" aria-label="操作の切り替え">${DMODES.map(([k,l])=>`<button class="${m===k?'on':''}" data-act="dmode" data-m="${k}">${l}</button>`).join('')}</div>
-    <span class="scale${d.mmPerPx?' ok':''}">${d.mmPerPx?'縮尺 設定済み':'縮尺 未設定'}</span><button class="btn sm ghost" data-act="loadPdf">差し替え</button></div>
-    <div class="dstage"><canvas id="dCanvas"></canvas><div class="dhint" id="dHint">${DHINT[m]}</div>
-    <div class="zoom"><button class="zb" data-act="zin" aria-label="拡大">＋</button><button class="zb" data-act="zout" aria-label="縮小">−</button><button class="zb" data-act="zfit" aria-label="図面全体を表示">${ICON.fit}</button></div></div>`;
+    <span class="scale${d.mmPerPx?' ok':''}">${d.mmPerPx?'縮尺 設定済み':'縮尺 未設定'}</span>${(s.確認点||[]).length?`<span class="kpcount" title="案件管理で置いた確認点（橙＝まだ・緑＝済）">確認点 ${s.確認点.filter(c=>c.済).length}/${s.確認点.length}</span>`:''}${geoChipHTML(s)}<button class="btn sm ghost" data-act="loadPdf">差し替え</button></div>
+    <div class="dwrap"><div class="dstage"><canvas id="dCanvas"></canvas><div class="dhint" id="dHint">${state.placePt?'調査ポイントを置く場所を押してください':state.geoRef?'📍 いま立っている場所を押してください（基準点）':state.movePin?'ピンを置き直す場所を押してください':DHINT[m]}</div>
+    <div class="zoom"><button class="zb" data-act="zin" aria-label="拡大">＋</button><button class="zb" data-act="zout" aria-label="縮小">−</button><button class="zb" data-act="zfit" aria-label="図面全体を表示">${ICON.fit}</button></div></div>${dSide(s)}</div>`;
   },
+  meas(s){ return viewMeas(s); },
   check(s){
-    return `<div class="col"><div class="cksum" id="cksum">${ckSum(s)}</div>
+    return `<div class="col">${kpList(s)}<div class="cksum" id="cksum">${ckSum(s)}</div>
     ${applicable(s).map(g=>{ const rows=g.items.filter(it=>!state.onlyEmpty||!isFilled(s.checks[it[0]])); if(!rows.length) return ''; return `<section class="ckg"><h2>${esc(g.title)}</h2>${rows.map(it=>ckRow(s,it)).join('')}</section>`; }).join('')}
     <p class="muted small">表示する項目は、調査情報の「案件の種類」で切り替わります。</p></div>`;
   },
@@ -1380,9 +1975,9 @@ const TABV={
   report(s){
     const st=checkStats(s);
     return `<div class="col"><section class="card"><h2>調査報告書</h2>
-    <ul class="rlist"><li><span>表紙・調査情報</span><b class="mono">${esc(s.調査日)}</b></li><li><span>ヒアリング</span><b class="mono">${hearingCount(s.hearing)}項目</b></li><li><span>建屋図面と撮影位置</span><b class="mono">${s.drawing?`ピン ${s.pins.length}`:'図面なし'}</b></li><li><span>チェックリスト</span><b class="mono">${st.done}/${st.total}</b></li><li><span>写真（書き込み付き）</span><b class="mono">${s.photos.length}枚</b></li><li><span>搬送物</span><b class="mono">${s.items.length}件</b></li></ul>
+    <ul class="rlist"><li><span>表紙・調査情報</span><b class="mono">${esc(s.調査日)}</b></li><li><span>ヒアリング（現場で確かめたこと）</span><b class="mono">${hearingCount(s)}項目</b></li><li><span>建屋図面と撮影位置</span><b class="mono">${s.drawing?`ピン ${s.pins.length}`:'図面なし'}</b></li><li><span>チェックリスト</span><b class="mono">${st.done}/${st.total}</b></li><li><span>写真（書き込み付き）</span><b class="mono">${s.photos.length}枚</b></li><li><span>搬送物</span><b class="mono">${s.items.length}件</b></li></ul>
     ${st.ng.length?`<div class="callout ng"><b>NGの項目</b><span>${esc(st.ng.map(n=>n.label).join('、'))}</span></div>`:''}
-    ${st.reqMiss.length?`<div class="callout warn"><b>必須の未入力 ${st.reqMiss.length}件</b><span>${esc(st.reqMiss.join('、'))}</span></div>`:''}
+    ${pendHTML(s,false)}
     <div class="seg full" role="group" aria-label="報告書の種類"><button class="${state.rFor==='internal'?'on':''}" data-act="rFor" data-v="internal" aria-pressed="${state.rFor==='internal'}">社内用</button><button class="${state.rFor==='customer'?'on':''}" data-act="rFor" data-v="customer" aria-pressed="${state.rFor==='customer'}">顧客用</button></div>
     <p class="muted small">${state.rFor==='internal'?'ヒアリングの予算規模・意思決定方法・競合社名と、打ち合わせメモの原文を含みます。社外には出さないでください。':'ヒアリングの予算規模・意思決定方法・競合社名と、打ち合わせメモの原文は載せません。'}</p>
     <div class="addrow"><button class="btn primary" data-act="makePdf">PDFを作成</button><button class="btn" data-act="viewReport">画面で確認</button></div></section>
@@ -1392,15 +1987,39 @@ const TABV={
   }
 };
 /** 案件管理のヒアリングに入っていたこと（種）。読むだけ＝現場で聞く前に見る */
-function seedHearingBox(s){ const h=s.seed&&s.seed.ヒアリング; if(!h) return ''; const rows=Object.entries(h).filter(([,v])=>String(v||'').trim()); if(!rows.length) return '';
-  return `<section class="card seedbox"><h2>案件管理のヒアリングに入っていたこと</h2>${rows.map(([k,v])=>`<div><b>${esc(k)}</b>　${esc(v)}</div>`).join('')}<p class="muted small">案件管理（ヒアリング）の値をそのまま見せています。直すのは案件管理で。</p></section>`; }
+/** 現場で確かめること（案件管理のヒアリング・取捨選択で空いている欄）。答えは取り込みで Hearing.csv・Screening.csv の同じ列へ */
+function askBox(s){ const as=s.聞く項目||[]; if(!as.length) return '';
+  const left=as.filter(a=>!String(a.値||'').trim()).length;
+  return `<section class="card askbox"><h2>現場で確かめること <span class="mono small ${left?'askleft':'muted'}">${left?'まだ '+left:'すべて入力済み'}</span></h2><p class="muted small">案件管理のヒアリング・取捨選択で空いている欄です。分かったものだけ入れてください（取り込みで同じ欄に入ります）。</p>
+  ${as.map((a,i)=>`<label class="fld${a.ai?' aif':''}">${esc(a.label)}<span class="asksrc">${a.src==='screening'?'取捨選択':'ヒアリング'}</span>${a.type==='sel'&&a.opts?`<select data-ask="${i}"><option value=""></option>${a.opts.map(o=>`<option${o===a.値?' selected':''}>${esc(o)}</option>`).join('')}</select>`:a.type==='area'?`<textarea data-ask="${i}" rows="2">${esc(a.値||'')}</textarea>`:`<input data-ask="${i}" value="${esc(a.値||'')}">`}</label>`).join('')}</section>`; }
+/** 図面の横の一覧（幅のある画面＝iPad）：確認点と写真ピン。押すとその場所へ寄せて小窓を開く */
+function dSide(s){
+  const ks=s.確認点||[], pins=[...s.pins].map(p=>({p,i:s.photos.findIndex(ph=>ph.id===p.photoId)})).sort((a,b)=>a.i-b.i);
+  return `<aside class="dside" aria-label="確認点と写真ピン">${ks.length?`<h3>確認点 <span class="mono muted">${ks.filter(c=>c.済).length}/${ks.length}</span></h3>${ks.map((c,i)=>`<button class="kprow${c.済?' done':''}" data-act="sideKp" data-id="${esc(c.id)}"><span class="kpn mono">${c.済?'✓':'K'+(i+1)}</span><span>${esc(c.内容||'')}${c.メモ?`<small>${esc(c.メモ)}</small>`:''}</span></button>`).join('')}`:''}
+  ${(s.調査ポイント||[]).length?`<h3>調査ポイント <span class="mono muted">${s.調査ポイント.filter(p=>msOf(s,p.id).length).length}/${s.調査ポイント.length}</span></h3>${s.調査ポイント.map(p=>`<button class="kprow mprow" data-act="sideMp" data-id="${esc(p.id)}"><span class="kpn mono" style="background:${MPCOL[p.種類]||MPCOL.作業時間}">${mpNo(s,p)}</span><span>${esc(p.名前||p.種類)}<small>${esc(p.x==null?'図面にまだ置いていません':(NC.pointResult(p,s.計測||[]).文字||'まだ測っていません'))}</small></span></button>`).join('')}`:''}
+  <h3>写真ピン <span class="mono muted">${pins.length}</span></h3>${pins.length?pins.map(({p,i})=>`<button class="dsph" data-act="sidePin" data-id="${esc(p.id)}"><canvas data-thumb="${s.photos[i]?s.photos[i].id:''}"></canvas><span>${i+1}　${esc(s.photos[i]?[s.photos[i].area,...(s.photos[i].tags||[])].filter(Boolean).join('・')||'未分類':'')}</span></button>`).join(''):'<p class="muted small">「写真ピン」で図面を押すと、撮った場所と向きを残せます。</p>'}</aside>`;
+}
+function seedHearingBox(s){ const sd=s.seed; if(!sd) return '';
+  const pick=o=>Object.entries(o||{}).filter(([,v])=>String(v||'').trim());
+  const w=pick(sd.窓口), rows=pick(sd.ヒアリング); if(!w.length&&!rows.length) return '';
+  const wl={担当者名:'窓口',担当者部署:'窓口の部署',電話番号:'電話番号',メールアドレス:'メール',決裁者名:'決裁者'};
+  return `<section class="card seedbox"><h2>案件管理に入っていること</h2>${w.map(([k,v])=>`<div><b>${esc(wl[k]||k)}</b>　${esc(v)}</div>`).join('')}${rows.map(([k,v])=>`<div><b>${esc(k)}</b>　${esc(v)}</div>`).join('')}<p class="muted small">案件管理（客先担当者・ヒアリング）の値をそのまま見せています。直すのは案件管理で。</p></section>`; }
+/** 前の版のノートで入れたヒアリングの欄（顧客窓口・物量・条件…）。読むだけ。取り込みでは今までどおり案件管理へ送る */
+function legacyHearBox(s){ const h=s.hearing||{}; if(!legacyHear(h)) return '';
+  const rows=HEAR.flatMap(g=>g.fields.filter(([k])=>String(h[k]||'').trim()).map(([k,l])=>[l,h[k]]));
+  if((h.導入目的||[]).length) rows.unshift(['導入目的',h.導入目的.join('、')]);
+  return `<section class="card seedbox legacyhear"><h2>このノートに入っているヒアリング</h2>${rows.map(([l,v])=>`<div><b>${esc(l)}</b>　${esc(v)}</div>`).join('')}<p class="muted small">前の版のノートで入れた値です。取り込むと案件管理のヒアリング（空欄だけ）・客先担当者へ入ります。直すのは案件管理かコンパスヒヤリングで。</p></section>`; }
+/** 確認点の一覧（チェックタブの上）。押すと図面のその場所へ */
+function kpList(s){ const ks=s.確認点||[]; if(!ks.length) return '';
+  return `<section class="card kpl"><h2>図面の確認点 <span class="mono muted small">${ks.filter(c=>c.済).length}/${ks.length}</span></h2>${ks.map((c,i)=>`<button class="kprow${c.済?' done':''}" data-act="goKp" data-id="${esc(c.id)}"><span class="kpn mono">${c.済?'✓':'K'+(i+1)}</span><span>${esc(c.内容||'（内容なし）')}${c.メモ?`<small>${esc(c.メモ)}</small>`:''}</span></button>`).join('')}</section>`; }
 function ckSum(s){ const st=checkStats(s), pct=st.total?Math.round(st.done/st.total*100):0;
   return `<div class="cks-top"><b class="mono">${st.done}<small>/${st.total}</small></b><span class="small">入力済み</span><span class="sp"></span>${st.ng.length?`<span class="pill ng">NG ${st.ng.length}</span>`:''}${st.reqMiss.length?`<span class="pill warn">必須の未入力 ${st.reqMiss.length}</span>`:'<span class="pill ok">必須は入力済み</span>'}</div><div class="track"><i style="width:${pct}%"></i></div><button class="chip${state.onlyEmpty?' on':''}" data-act="onlyEmpty" aria-pressed="${state.onlyEmpty}">未入力だけ表示</button>`; }
 function ckRow(s,[k,label,kind,unit,req]){ const r=s.checks[k]||{}; const hint=seedHints(s)[k];
   return `<div class="ckrow${r.j==='NG'?' j-ng':''}" data-row="${k}"><div class="ckl"><span>${esc(label)}</span>${req?'<i class="req">必須</i>':''}${hint?`<span class="hintc" title="案件管理（建屋情報）に入っている値。実測して違えば、この欄の値が正になります">案件管理: ${esc(hint)}</span>`:''}</div>
   <div class="ckin">${kind!=='judge'?`<div class="valw"><input class="val${kind==='num'?' mono':''}" id="ck_${k}" data-ck="${k}" data-f="val"${kind==='num'?' inputmode="decimal"':''} value="${esc(r.val??'')}" placeholder="${kind==='num'?'数値':'内容'}" aria-label="${esc(label)}">${unit?`<span class="unit">${esc(unit)}</span>`:''}</div>`:''}
   <div class="judge" role="group" aria-label="${esc(label)}の判定">${['OK','NG','不明'].map(j=>`<button class="jb${r.j===j?' on':''}" data-act="judge" data-k="${k}" data-j="${j}" aria-pressed="${r.j===j}">${j}</button>`).join('')}</div></div>
-  <input class="memo" id="ckm_${k}" data-ck="${k}" data-f="memo" value="${esc(r.memo??'')}" placeholder="メモ" aria-label="${esc(label)}のメモ"></div>`; }
+  <div class="ckph"><input class="memo" id="ckm_${k}" data-ck="${k}" data-f="memo" value="${esc(r.memo??'')}" placeholder="メモ" aria-label="${esc(label)}のメモ"><button class="ckcam" data-act="ckPhoto" data-k="${k}" aria-label="${esc(label)}の写真を撮る" title="この項目の写真を撮る">${ICON.cam}${(r.photos||[]).length?`<b>${r.photos.length}</b>`:''}</button></div>
+  ${(r.photos||[]).length?`<div class="ckphs">${r.photos.map(id=>{ const ph=s.photos.find(p=>p.id===id); return ph?`<button class="ckpc" data-act="openPhoto" data-id="${id}"><canvas data-thumb="${id}"></canvas><span>${pno(s,ph)}</span></button>`:''; }).join('')}</div>`:(r.j==='NG'?'<p class="cknph">NG の項目は写真を残してください（右の 📷）</p>':'')}</div>`; }
 
 /* ---------- voice memo ---------- */
 const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
@@ -1421,32 +2040,34 @@ function micToggle(){
   try{ r.start(); rec=r; refreshMic(); }catch(e){ toast('音声入力を始められませんでした。キーボードのマイクを使ってください'); }
 }
 
-/* ---------- hearing auto-fill ---------- */
+/* ---------- memo → 現場で確かめること（Claude の中だけ） ---------- */
+//  2026-11-09：ヒアリングの欄はコンパスヒヤリングへ移したので、メモから埋めるのは「現場で確かめること」の空欄だけ
+const askEmpty=s=>(s.聞く項目||[]).map((a,i)=>({a,i})).filter(({a})=>!String(a.値||'').trim());
 function aiBox(){
-  if(!state.ai) return `<p class="muted small">メモから項目への自動入力は、Claudeで開いているときに使えます。ここでは下の項目に手で入力してください。</p>`;
-  return `<button class="btn primary block" data-act="aiFill"${state.aiBusy?' disabled':''}>${ICON.spark}${state.aiBusy?'読み取っています…':'メモから自動入力'}</button><p class="muted small" role="status">${esc(state.aiMsg||'空欄の項目だけに入力します。入力済みの項目は変えません。')}</p>`;
+  const s=cur(); if(!s||!(s.聞く項目||[]).length) return '';
+  if(!state.ai) return `<p class="muted small">メモから「現場で確かめること」への自動入力は、Claudeで開いているときに使えます。ここでは上の欄に手で入力してください。</p>`;
+  return `<button class="btn primary block" data-act="aiFill"${state.aiBusy||!askEmpty(s).length?' disabled':''}>${ICON.spark}${state.aiBusy?'読み取っています…':'メモから「現場で確かめること」に入れる'}</button><p class="muted small" role="status">${esc(state.aiMsg||'空欄の項目だけに入力します。入力済みの項目は変えません。')}</p>`;
 }
 function refreshAi(){ const b=$('#aiBox'); if(b) b.innerHTML=aiBox(); }
 async function aiFill(){
   const s=cur(), h=s.hearing;
   if(!h.打ち合わせメモ.trim()){ toast('先に打ち合わせメモを入力してください'); return; }
   if(state.aiBusy||!state.ai) return;
+  const left=askEmpty(s); if(!left.length){ toast('現場で確かめることは、すべて入力済みです'); return; }
   state.aiBusy=true; state.aiMsg=''; refreshAi();
-  const fields=HEAR.flatMap(g=>g.fields);
-  const prompt=`あなたは物流機器（コンベヤ、AGV/AMR）の営業担当のアシスタントです。
-次の「打ち合わせメモ」は、顧客との打ち合わせの後に営業担当が話した内容を書き起こしたものです。ヒアリングシート（コンパスの案件管理と同じ項目名）の各項目に当てはまる内容を抜き出してください。
+  const prompt=`あなたは物流機器（コンベヤ、AGV/AMR、自動倉庫）の現地調査のアシスタントです。
+次の「打ち合わせメモ」は、現地調査で聞いたことを書き起こしたものです。下の各項目に当てはまる内容を抜き出してください。
 
 ルール:
 - メモに書かれていることだけを使い、推測や補足はしない。書かれていない項目は空文字 "" にする。
 - 数値と単位はメモの表記のまま残す。
 - 値は短く、要点だけを日本語で書く。
-- 導入目的 は次の選択肢のうち、メモから明らかに当てはまるものだけを配列で返す: ${HEAR_PURPOSE.join('、')}
+- 選択肢のある項目は、選択肢のどれかをそのまま返す（当てはまらなければ ""）。
 
 客先: ${s.客先名||''} ${s.建屋名称||''}
 
 出力は次のキーを持つJSONオブジェクトだけにする。
-${fields.map(([k,l])=>`"${k}": ${l}`).join('\n')}
-"導入目的": 導入の目的（配列）
+${left.map(({a,i})=>`"q${i}": ${a.label}${a.opts&&a.opts.length?'（選択肢: '+a.opts.join('／')+'）':''}`).join('\n')}
 
 打ち合わせメモ:
 """
@@ -1454,8 +2075,7 @@ ${h.打ち合わせメモ}
 """`;
   try{
     const out=await state.ai.json(prompt,{modelTier:'default'}); let n=0;
-    for(const [k] of fields){ const v=out&&out[k]; if(v!=null&&String(v).trim()&&!String(h[k]||'').trim()){ h[k]=String(v).trim(); if(!h.ai.includes(k)) h.ai.push(k); n++; } }
-    if(out&&Array.isArray(out.導入目的)) for(const p of out.導入目的) if(HEAR_PURPOSE.includes(p)&&!h.導入目的.includes(p)){ h.導入目的.push(p); n++; }
+    for(const {a,i} of left){ let v=out&&out['q'+i]; if(v==null) continue; v=String(v).trim(); if(!v) continue; if(a.opts&&a.opts.length&&!a.opts.includes(v)) continue; a.値=v; a.ai=true; n++; }
     await saveSurvey(s);
     state.aiMsg=n?`${n}項目に入力しました。黄色の枠の項目を確認してください。`:'空欄に入れられる内容は見つかりませんでした。';
   }catch(e){
@@ -1467,12 +2087,13 @@ ${h.打ち合わせメモ}
   if(state.view==='survey'&&state.tab==='hear') render(); else refreshAi();
 }
 function sampleHearing(h){
+  //  記入例は現場のメモだけ（ヒアリングの欄はコンパスヒヤリングで入れる。2026-11-09）
   Object.assign(h,{
-    打ち合わせメモ:'物流部の佐藤課長と打ち合わせ。決裁は物流本部長で、来年度の予算で通したい。出荷のピークは12月で1日あたり3,000ケース前後、普段は2,000ケースくらい。朝8時から夜10時までの2交代で、出荷作業は25名。人が集まらないのが一番の悩みで、ピッキングの歩く距離を減らしたい。WMSは自社開発。来年秋の繁忙期前に動かしたい。予算は概算で1億円前後。他社2社にも声をかけているとのこと。',
-    担当者名:'佐藤 課長',担当者部署:'物流部 課長',決裁者名:'物流本部長',導入目的:['省人化','作業負担の軽減'],現在の課題:'人が集まらない。ピッキングの歩行距離を減らしたい。',
-    作業量:'約2,000ケース/日',繁忙期:'12月 約3,000ケース/日',上位システム:'WMS（自社開発）',稼働時期:'来年秋の繁忙期前',予算規模:'概算 1億円前後'
+    打ち合わせメモ:'現場の佐藤さんの話。出荷のピークは12月で、夕方の積み込みが詰まる。在庫は普段3万ケースくらい、12月は4万近く。シャッターは朝7時から開く。2階への搬入は荷物用エレベーター（積載2t）だけ。'
   });
 }
+//  記入例の「現場で確かめること」（案件管理の準備で選ぶものと同じ形）
+const SAMPLE_ASKS=[{src:'hearing',id:'在庫量',label:'現在の取り扱い在庫量',type:'text',opts:null,値:'約3万ケース（12月は4万近く）'},{src:'hearing',id:'出荷時間',label:'出荷時間（トラック到着／オーダー〆切）',type:'text',opts:null,値:''}];
 
 /* ---------- survey form ---------- */
 function openSurveyForm(s,isNew){
@@ -1501,11 +2122,97 @@ function openSurveyForm(s,isNew){
   }});
 }
 
+/* ---------- GPS で写真の位置を図面に置く（2026-11-09 利用者「GPS で撮影した写真のレイアウト上の位置を自動取得できるように」） ----------
+ *  ・「📍 GPS」で現在地の記録をオンにすると、この画面を開いているあいだ現在地を取り続ける（watchPosition）。調査ごとの印 s.geoOn。
+ *  ・撮影ボタンを押した瞬間の現在地と向き（電子コンパス）を、撮った写真に付ける（ph.geo）。ライブラリの写真は EXIF の GPS だけ
+ *    （iPhone の Safari はライブラリの写真の位置を外して渡すことが多い）。
+ *  ・図面は緯度・経度を知らない → 建屋の角などに立って「ここを基準点にする」を2か所以上（s.drawing.geo.refs）＝NC.geoFit で図面への変換。
+ *  ・ずれの見込みが NC.GEO_MAX_ACC（15m）より悪ければ置かない（建屋の中は GPS が大きくずれる）。置いたピンは auto・acc の印つき＝「場所を直す」で直せる。
+ *  ・外へは何も送らない（現在地は端末の中で計算するだけ。書き出す JSON に写真の位置と基準点が入る） */
+const GEO={on:false,watch:null,last:null,fixes:[],heading:null,err:'',perm:false,
+  ok(){ return !!(navigator.geolocation)&&window.isSecureContext!==false; },
+  start(){
+    if(this.watch!=null) return true;
+    if(!this.ok()){ this.err='この開き方では現在地を使えません（https で開いたとき＝ホーム画面に追加したアプリで使えます）'; return false; }
+    this.err=''; this.on=true;
+    try{ this.watch=navigator.geolocation.watchPosition(p=>{ const f={lat:p.coords.latitude,lon:p.coords.longitude,acc:p.coords.accuracy,at:Date.now()}; this.last=f; this.fixes.push(f); const t=Date.now()-15000; this.fixes=this.fixes.filter(x=>x.at>=t).slice(-30); this.err=''; geoPaint(); },
+      e=>{ this.err=e&&e.code===1?'現在地の使用が許可されていません（設定 → Safari → 位置情報）':'現在地が取れません'; geoPaint(); },{enableHighAccuracy:true,maximumAge:0,timeout:30000}); }
+    catch(e){ this.err='現在地が取れません'; this.on=false; return false; }
+    return true;
+  },
+  stop(){ if(this.watch!=null){ try{ navigator.geolocation.clearWatch(this.watch); }catch(e){} } this.watch=null; this.on=false; this.fixes=[]; },
+  /** 向き（電子コンパス）。iPhone は押した操作の中で許可を聞く */
+  async compass(){
+    if(this.perm) return; this.perm=true;
+    const on=e=>{ let h=null; if(typeof e.webkitCompassHeading==='number') h=e.webkitCompassHeading; else if(e.absolute&&typeof e.alpha==='number') h=(360-e.alpha)%360; if(h!=null&&isFinite(h)) this.heading={h,at:Date.now()}; };
+    try{ if(window.DeviceOrientationEvent&&typeof DeviceOrientationEvent.requestPermission==='function'){ const r=await DeviceOrientationEvent.requestPermission(); if(r!=='granted') return; } }catch(e){ return; }
+    window.addEventListener('deviceorientationabsolute',on,true); window.addEventListener('deviceorientation',on,true);
+  },
+  /** いまの現在地（15秒のあいだに取れた分をまとめる。無ければ1分以内の最後） */
+  now(){ const t=Date.now(), r=this.fixes.filter(f=>t-f.at<=15000); if(r.length) return Object.assign(NC.geoAvg(r),{at:t}); return this.last&&t-this.last.at<=60000?this.last:null; },
+  head(){ return this.heading&&Date.now()-this.heading.at<=5000?Math.round(this.heading.h):null; }
+};
+const geoRefs=s=>(s&&s.drawing&&s.drawing.geo&&s.drawing.geo.refs)||[];
+const geoFitOf=s=>NC.geoFit(geoRefs(s));
+/** 写真を図面に自動で置く（GPS の付いた・ピンの無い写真）。返り値 {placed, acc, out, nofit, nogeo} */
+async function autoPlace(s,ids){
+  const r={placed:0,acc:0,out:0,nofit:0,nogeo:0}; const f=geoFitOf(s), d=s.drawing; if(!d) return r;
+  for(const id of ids){ const ph=s.photos.find(p=>p.id===id); if(!ph||!ph.geo){ r.nogeo++; continue; } if(s.pins.some(p=>p.photoId===id)) continue;
+    const g=NC.geoPlace(f,ph.geo,d.w,d.h); if(!g.ok){ r[g.why]=(r[g.why]||0)+1; continue; }
+    s.pins.push({id:uid(),x:g.x,y:g.y,dir:NC.headingToDir(f,ph.geo.heading),photoId:id,auto:true,acc:ph.geo.acc==null?null:Math.round(ph.geo.acc)}); r.placed++; }
+  if(r.placed) await saveSurvey(s);
+  return r;
+}
+function geoMsg(r){ const m=[]; if(r.placed) m.push(`${r.placed}枚を GPS で図面に置きました`); if(r.acc) m.push(`${r.acc}枚は位置のずれが大きい（±${NC.GEO_MAX_ACC}m より悪い）ので置きませんでした`); if(r.out) m.push(`${r.out}枚は図面の外でした（基準点を見直してください）`); if(r.nofit) m.push('基準点が2つそろうと図面に置けます'); return m.join('。'); }
+/** GPS の小窓と帯の札を書き直す（現在地が取れるたび） */
+function geoPaint(){ const el=$('#geoNow'); if(el) el.innerHTML=geoNowHTML(); const c=$('#geoChip'); if(c) c.outerHTML=geoChipHTML(cur()); }
+function geoNowHTML(){ if(GEO.err) return `<span class="ngt">${esc(GEO.err)}</span>`; if(!GEO.on) return '<span class="muted">オフ</span>'; const f=GEO.now(); if(!f) return '<span class="muted">現在地を探しています…（屋外や窓ぎわだと早く取れます）</span>'; const a=Math.round(f.acc), bad=a>NC.GEO_MAX_ACC; return `<b class="mono ${bad?'ngt':'okt'}">±${a} m</b> <span class="muted small">${bad?'ずれが大きいので、撮っても図面には置きません':'この精度なら撮った写真を図面に置きます'}</span>`; }
+function geoChipHTML(s){ if(!s||!s.drawing) return ''; const n=geoRefs(s).length, f=geoFitOf(s), g=GEO.on?GEO.now():null; const st=GEO.on?(g?`±${Math.round(g.acc)}m`:'探し中'):'オフ'; return `<button class="btn sm ghost geochip${GEO.on?' on':''}" id="geoChip" data-act="geoSheet" title="撮った写真の位置を GPS で図面に置く（基準点 ${n}）">📍 GPS ${esc(st)}${f?'':` ・基準点 ${n}/2`}</button>`; }
+function openGeoSheet(){
+  const s=cur(); if(!s||!s.drawing){ toast('先に図面を取り込んでください'); return; }
+  const refs=geoRefs(s), f=geoFitOf(s), sd=NC.geoScaleDiff(f,s.drawing.mmPerPx);
+  //  置ける写真だけ数える（ずれが大きい・図面の外の写真は押しても置かれない）
+  const noPin=f?s.photos.filter(ph=>ph.geo&&!s.pins.some(p=>p.photoId===ph.id)&&NC.geoPlace(f,ph.geo,s.drawing.w,s.drawing.h).ok).length:0;
+  openSheet(`${shHead('📍 GPS で写真の位置を図面に置く')}
+  <p class="muted small">撮った瞬間の現在地を写真に記録し、図面の上の位置に自動でピンを置きます。図面と現在地を合わせるため、<b>建屋の角などに立って「ここを基準点にする」を2か所以上</b>で押してください（離れているほど正確です）。<br>★建屋の中は GPS が大きくずれます（10〜30m）。ずれの見込みが ±${NC.GEO_MAX_ACC}m より大きいときは置きません。置いたピンは押して「場所を直す」で直せます。</p>
+  <div class="fld"><span>現在地の記録</span><div class="georow"><button class="btn${GEO.on?' geoon':''}" id="geoOn">${GEO.on?'記録している（押すと止める）':'記録を始める'}</button><div class="geonow" id="geoNow">${geoNowHTML()}</div></div></div>
+  <div class="fld"><span>基準点 <span class="mono muted">${refs.length}</span></span>${refs.length?`<ul class="georefs">${refs.map((r,i)=>`<li><b class="mono">G${i+1}</b><span class="mono muted small">±${Math.round(r.acc||0)}m ・ ${esc(new Date(r.at).toLocaleTimeString('ja-JP',{hour:'2-digit',minute:'2-digit'}))}</span><button class="btn sm danger" data-georef-del="${esc(r.id)}">外す</button></li>`).join('')}</ul>`:'<p class="muted small">まだありません。</p>'}
+  <button class="btn block" id="geoRef">${ICON.pin}ここを基準点にする（立っている場所を図面で押す）</button></div>
+  ${f?`<div class="callout ok"><b>図面に合わせられます</b><span>基準点 ${f.n}つ・いちばん離れた2点 ${Math.round(f.spanM)}m${f.resid!=null?`・基準点どうしのずれ ${f.resid.toFixed(1)}m`:''}${sd!=null?`・縮尺合わせとの差 ${sd>=0?'+':''}${Math.round(sd*100)}%`:''}</span></div>`:(refs.length?'<div class="callout warn"><b>基準点があと1つ要ります</b><span>3m 以上離れた所で、もう1つ押してください。</span></div>':'')}
+  ${f&&sd!=null&&Math.abs(sd)>0.2?'<div class="callout warn"><b>縮尺合わせと 20% 以上ちがいます</b><span>基準点の GPS がずれている見込みです。屋外や窓ぎわで取り直すか、もっと離れた2点にしてください。</span></div>':''}
+  ${f&&noPin?`<button class="btn primary block" id="geoAll">位置のある写真 ${noPin}枚を図面に置く</button>`:''}`,{onMount:sh=>{
+    $('#geoOn',sh).onclick=async()=>{ if(GEO.on){ GEO.stop(); s.geoOn=false; } else { GEO.compass(); s.geoOn=GEO.start(); } await saveSurvey(s); openGeoSheet(); const c=$('#geoChip'); if(c) c.outerHTML=geoChipHTML(s); };
+    $('#geoRef',sh).onclick=async()=>{ if(!GEO.on){ GEO.compass(); s.geoOn=GEO.start(); await saveSurvey(s); } closeSheet(); state.geoRef=true; state.placePt=null; state.movePin=null; state.tab='drawing'; render(); toast('いま立っている場所を、図面で押してください'); };
+    $$('[data-georef-del]',sh).forEach(b=>b.onclick=async()=>{ s.drawing.geo.refs=s.drawing.geo.refs.filter(r=>r.id!==b.dataset.georefDel); await saveSurvey(s); openGeoSheet(); dDraw(); });
+    const all=$('#geoAll',sh); if(all) all.onclick=async()=>{ closeSheet(); const r=await autoPlace(s,s.photos.map(p=>p.id)); render(); toast(geoMsg(r)||'置ける写真はありませんでした'); };
+  }});
+}
+/** 基準点を置く（図面で押した所＝いま立っている所）。2つそろったら、位置のある写真を置く */
+async function geoRefAt(ip){
+  const s=cur(); state.geoRef=false; const h=$('#dHint'); if(h) h.textContent=DHINT[state.dmode];
+  const f=GEO.now(); if(!f){ toast('まだ現在地が取れていません。少し待ってから、もう一度「ここを基準点にする」を押してください'); return; }
+  s.drawing.geo=s.drawing.geo||{refs:[]};
+  s.drawing.geo.refs.push({id:uid(),x:ip.x,y:ip.y,lat:f.lat,lon:f.lon,acc:Math.round(f.acc*10)/10,at:Date.now()}); await saveSurvey(s);
+  const fit=geoFitOf(s); let msg=`基準点 G${s.drawing.geo.refs.length} を置きました（±${Math.round(f.acc)}m）`+(f.acc>NC.GEO_MAX_ACC?'。ずれが大きいので、できれば屋外や窓ぎわで取り直してください':'')+(fit?'':'。もう1か所（3m 以上離れた所）で押してください');
+  if(fit){ const ids=s.photos.filter(ph=>ph.geo&&!s.pins.some(p=>p.photoId===ph.id)).map(p=>p.id); if(ids.length){ const r=await autoPlace(s,ids); const m=geoMsg(r); if(m) msg+='。'+m; } }
+  render(); toast(msg);
+}
+function drawGeoRef(g,x,y,label){ g.save(); g.strokeStyle='#1B6E3C'; g.lineWidth=2.2; g.beginPath(); g.arc(x,y,9,0,Math.PI*2); g.stroke(); g.beginPath(); g.moveTo(x-15,y); g.lineTo(x+15,y); g.moveTo(x,y-15); g.lineTo(x,y+15); g.stroke();
+  g.font=font(12,700,true); const tw=g.measureText(label).width; g.fillStyle='#1B6E3C'; g.beginPath(); if(g.roundRect) g.roundRect(x+11,y-24,tw+10,18,5); else g.rect(x+11,y-24,tw+10,18); g.fill(); g.fillStyle='#fff'; g.textAlign='left'; g.textBaseline='middle'; g.fillText(label,x+16,y-15); g.restore(); }
+
 /* ---------- photos ---------- */
-async function addPhotos(files){
+/** 写真を足す。opt.src='cam'＝撮影ボタンから（押した瞬間の現在地と向きを付ける）／opt.autoPin＝GPS で図面に置く（2026-11-09） */
+async function addPhotos(files,opt={}){
   const s=cur(); const ids=[]; if(files.length>1) busy(true,'写真を取り込んでいます…');
-  for(const f of files){ try{ const {blob,w,h}=await importImage(f); const blobId=await putBlob(blob); const ph={id:uid(),blobId,w,h,area:state.areaFilter||'',tags:[],memo:'',ann:[],at:Date.now()}; s.photos.push(ph); ids.push(ph.id); }catch(e){ toast('写真を読み込めませんでした'); } }
-  busy(false); await saveSurvey(s); if(state.tab==='photos') render(); if(ids.length) toast(`写真を${ids.length}枚追加しました`); return ids;
+  const tap=opt.src==='cam'?state.tapGeo:null; state.tapGeo=null;
+  for(const f of files){ try{
+    let geo=null;
+    if(tap&&tap.fix) geo={lat:tap.fix.lat,lon:tap.fix.lon,acc:Math.round(tap.fix.acc*10)/10,at:tap.fix.at,heading:tap.heading,src:'端末'};
+    if(!geo){ try{ const e=NC.exifGps(await f.arrayBuffer()); if(e) geo=Object.assign(e,{src:'写真'}); }catch(e){} }
+    const {blob,w,h}=await importImage(f); const blobId=await putBlob(blob); const ph={id:uid(),blobId,w,h,area:state.areaFilter||'',tags:[],memo:'',ann:[],at:Date.now()}; if(geo) ph.geo=geo; s.photos.push(ph); ids.push(ph.id); }catch(e){ toast('写真を読み込めませんでした'); } }
+  busy(false); await saveSurvey(s);
+  let gm=''; if(opt.autoPin&&ids.length&&s.drawing&&ids.some(id=>(s.photos.find(p=>p.id===id)||{}).geo)) gm=geoMsg(await autoPlace(s,ids));
+  if(state.tab==='photos'||state.tab==='drawing') render(); if(ids.length) toast(`写真を${ids.length}枚追加しました`+(gm?'。'+gm:'')); return ids;
 }
 function openPhoto(id){
   const s=cur(); const ph=s.photos.find(p=>p.id===id); if(!ph) return; const pin=s.pins.find(p=>p.photoId===id);
@@ -1514,14 +2221,14 @@ function openPhoto(id){
   <button class="btn primary block" id="pdAnn">${ICON.pen}書き込み・寸法を入れる</button>
   <label class="fld">エリア<select id="pdArea"><option value="">未設定</option>${s.エリア.map(a=>`<option${ph.area===a?' selected':''}>${esc(a)}</option>`).join('')}</select></label>
   <fieldset class="fld"><legend>タグ</legend><div class="chips">${TAGS.map(t=>`<button type="button" class="chip${ph.tags.includes(t)?' on':''}" data-tag="${esc(t)}" aria-pressed="${ph.tags.includes(t)}">${esc(t)}</button>`).join('')}</div></fieldset>
-  <label class="fld">メモ<textarea id="pdMemo" rows="3" placeholder="気づいたこと、確認が必要なことなど">${esc(ph.打ち合わせメモ)}</textarea></label>
+  <label class="fld">メモ<textarea id="pdMemo" rows="3" placeholder="気づいたこと、確認が必要なことなど">${esc(ph.memo)}</textarea></label>
   <div class="pinline">${pin?`${ICON.pin}<span>図面にピンがあります</span><button class="btn sm" id="pdGo">図面で見る</button>`:'<span class="muted">図面ピンはまだありません。図面タブの「写真ピン」で置けます。</span>'}</div>
   <button class="btn danger block" id="pdDel">この写真を削除</button>`,{onClose:()=>{ if(state.view==='survey'&&state.tab==='photos') render(); },onMount:sh=>{
     renderAnnotated($('#pdC',sh),ph,$('.pdwrap',sh).clientWidth,true);
     $('#pdAnn',sh).onclick=()=>{ closeSheet(); openEditor(ph.id); };
     $('#pdArea',sh).onchange=e=>{ ph.area=e.target.value; saveSurvey(s); };
     $$('[data-tag]',sh).forEach(b=>b.onclick=()=>{ const t=b.dataset.tag; ph.tags=ph.tags.includes(t)?ph.tags.filter(x=>x!==t):[...ph.tags,t]; b.classList.toggle('on'); b.setAttribute('aria-pressed',ph.tags.includes(t)); saveSurvey(s); });
-    $('#pdMemo',sh).oninput=e=>{ ph.打ち合わせメモ=e.target.value; saveSoon(s); };
+    $('#pdMemo',sh).oninput=e=>{ ph.memo=e.target.value; saveSoon(s); };
     if(pin) $('#pdGo',sh).onclick=()=>{ state.focusPin=pin.id; state.tab='drawing'; closeSheet(); render(); };
     $('#pdDel',sh).onclick=()=>confirmSheet(`${pno(s,ph)} を削除します。図面のピンも外れます。`,'削除する',async()=>{
       s.photos=s.photos.filter(p=>p!==ph); s.pins=s.pins.filter(p=>p.photoId!==ph.id); DB.del('blobs',ph.blobId).catch(()=>{}); await saveSurvey(s); render(); toast('写真を削除しました');
@@ -1580,6 +2287,8 @@ async function dSetup(s){
   const size=()=>{ const r=stage.getBoundingClientRect(); dv.W=r.width; dv.H=r.height; dv.dpr=window.devicePixelRatio||1; cv.width=Math.round(r.width*dv.dpr); cv.height=Math.round(r.height*dv.dpr); cv.style.width=r.width+'px'; cv.style.height=r.height+'px'; dv.fitS=Math.min(dv.W/s.drawing.w,dv.H/s.drawing.h)*0.94; dv.minS=dv.fitS*0.5; dv.maxS=Math.max(dv.fitS*14,2); };
   size(); if(keep) Object.assign(dv,keep); else dFit();
   if(state.focusPin){ const p=s.pins.find(x=>x.id===state.focusPin); if(p){ dv.s=dv.fitS*3; dv.tx=dv.W/2-p.x*dv.s; dv.ty=dv.H/2-p.y*dv.s; dv.sel=p.id; } state.focusPin=null; }
+  if(state.focusMp){ const c=(s.調査ポイント||[]).find(x=>x.id===state.focusMp); if(c&&c.x!=null){ dv.s=dv.fitS*3; dv.tx=dv.W/2-c.x*dv.s; dv.ty=dv.H/2-c.y*dv.s; dv.sel=c.id; } state.focusMp=null; }
+  if(state.focusKp){ const c=(s.確認点||[]).find(x=>x.id===state.focusKp); if(c){ dv.s=dv.fitS*3; dv.tx=dv.W/2-c.x*dv.s; dv.ty=dv.H/2-c.y*dv.s; dv.sel=c.id; } state.focusKp=null; }
   dv.ro=new ResizeObserver(()=>{ if(!cv.isConnected) return; size(); dDraw(); }); dv.ro.observe(stage);
   const pt=e=>{ const r=cv.getBoundingClientRect(); return {x:e.clientX-r.left,y:e.clientY-r.top}; };
   const dist=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y), mid=(a,b)=>({x:(a.x+b.x)/2,y:(a.y+b.y)/2});
@@ -1606,14 +2315,28 @@ function dDraw(){
   if(dv.measure){ const a=toS(dv.measure.a), b=toS(dv.measure.b); dLine(g,a,b,'#C23A2E',`${fmt(Math.round(dv.measure.mm))} mm`); }
   if(dv.tmp.length===2) dLine(g,toS(dv.tmp[0]),toS(dv.tmp[1]),'#19202D','');
   for(const q of dv.tmp){ const p=toS(q); g.beginPath(); g.arc(p.x,p.y,9,0,Math.PI*2); g.fillStyle='rgba(31,95,209,.25)'; g.fill(); g.lineWidth=2; g.strokeStyle='#1F5FD1'; g.stroke(); g.beginPath(); g.moveTo(p.x-14,p.y); g.lineTo(p.x+14,p.y); g.moveTo(p.x,p.y-14); g.lineTo(p.x,p.y+14); g.stroke(); }
+  //  GPS で置いたピンのずれの見込み（点線の円）と基準点（緑の十字）
+  const gf=geoFitOf(s);
+  if(gf) for(const p of s.pins){ if(!p.auto||!p.acc) continue; const q=toS(p); g.save(); g.beginPath(); g.arc(q.x,q.y,Math.max(6,p.acc*gf.pxPerM*dv.s),0,Math.PI*2); g.fillStyle='rgba(42,102,184,.10)'; g.fill(); g.setLineDash([5,4]); g.strokeStyle='rgba(42,102,184,.55)'; g.lineWidth=1.2; g.stroke(); g.restore(); }
+  geoRefs(s).forEach((r,i)=>{ const q=toS(r); drawGeoRef(g,q.x,q.y,'G'+(i+1)); });
   for(const p of s.pins){ const i=s.photos.findIndex(ph=>ph.id===p.photoId); const q=toS(p); drawPin(g,q.x,q.y,p.dir,String(i+1),1,dv.sel===p.id); }
+  (s.確認点||[]).forEach((c,i)=>{ const q=toS(c); drawKp(g,q.x,q.y,'K'+(i+1),c.済,1,dv.sel===c.id); });
+  (s.調査ポイント||[]).forEach(c=>{ if(c.x==null) return; const q=toS(c); drawMp(g,q.x,q.y,mpNo(s,c),c.種類,msOf(s,c.id).length>0,dv.sel===c.id); });
 }
 function dLine(g,a,b,color,label){ g.save(); g.strokeStyle=color; g.lineWidth=2.5; g.setLineDash([8,6]); g.beginPath(); g.moveTo(a.x,a.y); g.lineTo(b.x,b.y); g.stroke(); g.setLineDash([]);
   if(label){ g.font=font(13,600,true); const tw=g.measureText(label).width, mx=(a.x+b.x)/2, my=(a.y+b.y)/2; g.fillStyle=color; g.beginPath(); if(g.roundRect) g.roundRect(mx-tw/2-8,my-13,tw+16,26,6); else g.rect(mx-tw/2-8,my-13,tw+16,26); g.fill(); g.fillStyle='#fff'; g.textAlign='center'; g.textBaseline='middle'; g.fillText(label,mx,my+1); }
   g.restore(); }
+function hitKp(p){ const s=cur(); let best=null,bd=24; for(const c of (s.確認点||[])){ const q=toS(c); const d=Math.hypot(q.x-p.x,q.y-p.y); if(d<bd){ bd=d; best=c; } } return best; }
 function hitPin(p){ const s=cur(); let best=null,bd=24; for(const pin of s.pins){ const q=toS(pin); const d=Math.hypot(q.x-p.x,q.y-p.y); if(d<bd){ bd=d; best=pin; } } return best; }
 function dTap(p){
   const s=cur(), d=s.drawing, ip={x:(p.x-dv.tx)/dv.s,y:(p.y-dv.ty)/dv.s}, inImg=ip.x>=0&&ip.y>=0&&ip.x<=d.w&&ip.y<=d.h, hit=hitPin(p), m=state.dmode;
+  if(state.geoRef){ if(!inImg) return; geoRefAt(ip); return; }
+  if(state.movePin){ if(!inImg) return; const pin=s.pins.find(x=>x.id===state.movePin); state.movePin=null; const h=$('#dHint'); if(h) h.textContent=DHINT[m]; if(pin){ pin.x=ip.x; pin.y=ip.y; pin.auto=false; delete pin.acc; saveSurvey(s); dv.sel=pin.id; dDraw(); toast('ピンを置き直しました'); } return; }
+  if(state.placePt){ if(!inImg) return; const q=(s.調査ポイント||[]).find(x=>x.id===state.placePt); state.placePt=null; const h=$('#dHint'); if(h) h.textContent=DHINT[m]; if(q){ q.x=ip.x; q.y=ip.y; saveSurvey(s); dv.sel=q.id; dDraw(); toast(`${mpNo(s,q)} を置きました`); } return; }
+  const mp=(m==='move'||m==='pin')?hitMp(p):null;
+  if(mp&&!hit){ openMpSheet(mp); return; }
+  const kp=(m==='move'||m==='pin')?hitKp(p):null;
+  if(kp&&!hit){ openKpSheet(kp); return; }
   if(m==='move'){ if(hit) openPinSheet(hit); return; }
   if(m==='pin'){ if(hit) openPinSheet(hit); else if(inImg) openNewPin(ip); return; }
   if(m==='scale'){ if(!inImg) return; if(dv.tmp.length>=2) dv.tmp=[]; dv.tmp.push(ip); dDraw(); if(dv.tmp.length===2) askScale(dv.tmp[0],dv.tmp[1]); return; }
@@ -1633,20 +2356,50 @@ function openNewPin(ip){
   <button class="btn primary block" id="pinCam">${ICON.cam}この場所で撮影して紐付ける</button>`,{onClose:()=>{ if(dv){ dv.tmp=[]; dDraw(); } },onMount:sh=>{
     drawThumbs(sh); bindDir(sh,d=>{ dir=d; });
     $$('[data-pick]',sh).forEach(b=>b.onclick=()=>addPin(ip,dir,b.dataset.pick));
-    $('#pinCam',sh).onclick=()=>pickFile('cam',async fs=>{ const ids=await addPhotos(fs); if(ids[0]) addPin(ip,dir,ids[0]); });
+    $('#pinCam',sh).onclick=()=>pickFile('cam',async fs=>{ const ids=await addPhotos(fs,{src:'cam'}); if(ids[0]) addPin(ip,dir,ids[0]); });
   }});
 }
 async function addPin(ip,dir,photoId){ const s=cur(); s.pins=s.pins.filter(p=>p.photoId!==photoId); s.pins.push({id:uid(),x:ip.x,y:ip.y,dir,photoId}); await saveSurvey(s); closeSheet(); dDraw(); toast('ピンを置きました'); }
+/** 確認点を開く：内容・済・メモ・紐付けた写真。「この場所で撮影」で写真ピンも同じ場所に置く */
+/** 確認点に結び付いたチェック項目（ひな形で選んだもの）を、確認点の小窓の中で入れる */
+function kpCheckHTML(s,c){ const it=c.check?NC.checkItem(c.check):null; if(!it) return ''; const r=s.checks[it.key]||{};
+  return `<div class="kpck"><span class="lbl">チェック項目「${esc(it.label)}」</span><div class="ckin">${it.kind!=='judge'?`<div class="valw"><input id="kpVal" class="val${it.kind==='num'?' mono':''}"${it.kind==='num'?' inputmode="decimal"':''} value="${esc(r.val??'')}" placeholder="${it.kind==='num'?'数値':'内容'}" aria-label="${esc(it.label)}">${it.unit?`<span class="unit">${esc(it.unit)}</span>`:''}</div>`:''}<div class="judge">${['OK','NG','不明'].map(j=>`<button class="jb${r.j===j?' on':''}" data-kpj="${j}">${j}</button>`).join('')}</div></div></div>`; }
+function openKpSheet(c){
+  const s=cur(), i=s.確認点.indexOf(c), ph=c.photoId?s.photos.find(p=>p.id===c.photoId):null; if(dv){ dv.sel=c.id; dDraw(); }
+  openSheet(`${shHead(`確認点 <span class="mono">K${i+1}</span>`)}
+  <p class="kpq">${esc(c.内容||'（内容なし）')}</p><p class="muted small">案件管理の事前準備で置いた「現場で確かめたいこと」です。</p>
+  ${ph?`<div class="pdwrap"><canvas id="kpC"></canvas></div><p class="muted small">${esc(pno(s,ph))}</p>`:''}
+  ${kpCheckHTML(s,c)}
+  <label class="fld">メモ（分かったこと）<textarea id="kpMemo" rows="3" placeholder="例：梁下 6,450mm。ダクトあり">${esc(c.メモ||'')}</textarea></label>
+  <div class="addrow"><button class="btn primary" id="kpCam">${ICON.cam}この場所で撮影</button><button class="btn" id="kpPick">撮った写真から選ぶ</button></div>
+  <button class="btn block${c.済?'':' primary'}" id="kpDone">${c.済?'済を外す':'✓ 確かめた（済にする）'}</button>`,{onClose:()=>{ if(dv){ dv.sel=null; dDraw(); } },onMount:sh=>{
+    if(ph) renderAnnotated($('#kpC',sh),ph,$('.pdwrap',sh).clientWidth,true);
+    $('#kpMemo',sh).oninput=e=>{ c.メモ=e.target.value; saveSoon(s); };
+    const it=c.check?NC.checkItem(c.check):null;
+    if(it){ const r=()=>s.checks[it.key]=s.checks[it.key]||{};
+      const v=$('#kpVal',sh); if(v) v.oninput=e=>{ r().val=e.target.value; saveSoon(s); };
+      $$('[data-kpj]',sh).forEach(b=>b.onclick=()=>{ const x=r(); x.j=x.j===b.dataset.kpj?'':b.dataset.kpj; $$('[data-kpj]',sh).forEach(y=>y.classList.toggle('on',y.dataset.kpj===x.j)); saveSurvey(s); }); }
+    const link=async id=>{ c.photoId=id; c.済=true; if(!s.pins.some(p=>p.photoId===id)) s.pins.push({id:uid(),x:c.x,y:c.y,dir:null,photoId:id});
+      if(it){ const x=s.checks[it.key]=s.checks[it.key]||{}; x.photos=[...new Set((x.photos||[]).concat(id))]; const ph=s.photos.find(p=>p.id===id); if(ph&&!ph.memo) ph.memo=c.内容; }
+      await saveSurvey(s); closeSheet(); if(dv) dDraw(); toast('確認点に写真を紐付けました'); };
+    $('#kpCam',sh).onclick=()=>pickFile('cam',async fs=>{ const ids=await addPhotos(fs,{src:'cam'}); if(ids[0]) link(ids[0]); });
+    $('#kpPick',sh).onclick=()=>{ const list=s.photos; if(!list.length){ toast('写真がまだありません'); return; }
+      openSheet(`${shHead('紐付ける写真')}<div class="pick">${list.map(p=>`<button class="pickc" data-pick="${p.id}"><canvas data-thumb="${p.id}"></canvas><span>${pno(s,p)}</span></button>`).join('')}</div>`,{onMount:sh2=>{ drawThumbs(sh2); $$('[data-pick]',sh2).forEach(b=>b.onclick=()=>link(b.dataset.pick)); }}); };
+    $('#kpDone',sh).onclick=async()=>{ c.済=!c.済; await saveSurvey(s); closeSheet(); if(dv) dDraw(); toast(c.済?'済にしました':'済を外しました'); };
+  }});
+}
 function openPinSheet(pin){
   const s=cur(); const ph=s.photos.find(p=>p.id===pin.photoId); dv.sel=pin.id; dDraw();
   openSheet(`${shHead(`図面ピン <span class="mono">${s.photos.indexOf(ph)+1}</span>`)}
-  ${ph?`<div class="pdwrap"><canvas id="pnC"></canvas></div><p class="muted small">${esc([pno(s,ph),ph.area,...ph.tags].filter(Boolean).join(' ・ '))}${ph.打ち合わせメモ?`<br>${esc(ph.打ち合わせメモ)}`:''}</p>`:''}
+  ${ph?`<div class="pdwrap"><canvas id="pnC"></canvas></div><p class="muted small">${esc([pno(s,ph),ph.area,...ph.tags].filter(Boolean).join(' ・ '))}${ph.memo?`<br>${esc(ph.memo)}`:''}</p>`:''}
   <div class="fld"><span>撮影した向き</span>${dirPicker(pin.dir)}</div>
-  <div class="addrow">${ph?'<button class="btn" id="pnOpen">写真の詳細</button>':''}<button class="btn danger" id="pnDel">ピンを外す</button></div>`,{onClose:()=>{ if(dv){ dv.sel=null; dDraw(); } },onMount:sh=>{
+  ${pin.auto?`<p class="muted small">📍 GPS で置きました${pin.acc?`（ずれの見込み ±${pin.acc}m・図面の点線の円）`:''}。ずれていたら「場所を直す」で置き直してください。</p>`:''}
+  <div class="addrow">${ph?'<button class="btn" id="pnOpen">写真の詳細</button>':''}<button class="btn" id="pnMove">場所を直す</button></div><button class="btn danger" id="pnDel">ピンを外す</button>`,{onClose:()=>{ if(dv){ dv.sel=null; dDraw(); } },onMount:sh=>{
     if(ph) renderAnnotated($('#pnC',sh),ph,$('.pdwrap',sh).clientWidth,true);
     bindDir(sh,d=>{ pin.dir=d; saveSurvey(s); dDraw(); });
     if(ph) $('#pnOpen',sh).onclick=()=>{ closeSheet(); state.tab='photos'; render(); openPhoto(ph.id); };
     $('#pnDel',sh).onclick=async()=>{ s.pins=s.pins.filter(p=>p!==pin); await saveSurvey(s); closeSheet(); toast('ピンを外しました'); };
+    $('#pnMove',sh).onclick=()=>{ closeSheet(); state.movePin=pin.id; state.geoRef=false; const h=$('#dHint'); if(h) h.textContent='ピンを置き直す場所を押してください'; toast('ピンを置き直す場所を、図面で押してください'); };
   }});
 }
 function askScale(a,b){
@@ -1739,7 +2492,7 @@ async function buildReport(s,internal=true){
 
   // hearing
   const groups=HEAR.filter(g=>internal||!g.internal).map(g=>({g,rows:g.fields.filter(([k])=>String(h[k]||'').trim())})).filter(x=>x.rows.length||(x.g.purpose&&h.導入目的.length));
-  if(groups.length||(internal&&h.打ち合わせメモ.trim())){
+  if(groups.length||(internal&&h.打ち合わせメモ.trim())||(s.聞く項目||[]).some(a=>String(a.値||'').trim())){
     add(); heading('ヒアリング');
     for(const {g,rows} of groups){
       ensure(90); P.y+=6; text(g.title+(g.internal?'（社内のみ）':''),{size:24,w:700,color:g.internal?R_NG:R_INK}); P.y+=4;
@@ -1747,6 +2500,8 @@ async function buildReport(s,internal=true){
       for(const [k,l] of rows){ const y0=P.y; ensure(36); P.g.font=font(20,700); P.g.fillStyle=R_MUTED; P.g.textAlign='left'; P.g.fillText(l,M,P.y+22); text(h[k],{x:M+300,size:22}); P.y=Math.max(P.y,y0+36)+4; }
       P.y+=10; rule(); P.y+=16;
     }
+    const askd=(s.聞く項目||[]).filter(a=>String(a.値||'').trim()&&(internal||a.src!=='screening'));
+    if(askd.length){ ensure(90); P.y+=6; text('現場で確かめたこと',{size:24,w:700}); P.y+=4; for(const a of askd){ const y0=P.y; ensure(36); P.g.font=font(20,700); P.g.fillStyle=R_MUTED; P.g.textAlign='left'; P.g.fillText(a.label,M,P.y+22); text(a.値,{x:M+300,size:22}); P.y=Math.max(P.y,y0+36)+4; } P.y+=10; }
     if(internal&&h.打ち合わせメモ.trim()){ ensure(90); text('打ち合わせメモ（原文）',{size:24,w:700}); P.y+=4; text(h.打ち合わせメモ,{size:20,color:R_MUTED,lh:1.7}); }
   }
 
@@ -1757,8 +2512,11 @@ async function buildReport(s,internal=true){
     const legendH=Math.min(480,70+pins.length*36), maxW=PW-2*M, maxH=PH-P.y-M-60-legendH, k=Math.min(maxW/s.drawing.w,maxH/s.drawing.h), dw=s.drawing.w*k, dh=s.drawing.h*k, x0=M+(maxW-dw)/2, y0=P.y;
     if(img) P.g.drawImage(img,x0,y0,dw,dh); P.g.strokeStyle='#C9CCC2'; P.g.lineWidth=2; P.g.strokeRect(x0,y0,dw,dh);
     for(const {p,i} of pins) drawPin(P.g,x0+p.x*k,y0+p.y*k,p.dir,String(i+1),1.5);
+    (s.確認点||[]).forEach((c,i)=>drawKp(P.g,x0+c.x*k,y0+c.y*k,'K'+(i+1),c.済,1.4));
+    (s.調査ポイント||[]).forEach(c=>{ if(c.x!=null) drawMp(P.g,x0+c.x*k,y0+c.y*k,mpNo(s,c),c.種類,msOf(s,c.id).length>0,false,1.4); });
     P.y=y0+dh+16; text(`${s.drawing.name||'図面'}　${s.drawing.mmPerPx?'縮尺 設定済み':'縮尺 未設定'}`,{size:18,color:R_MUTED}); P.y+=6;
-    for(const {p,i} of pins){ const ph=s.photos[i]; if(!ph) continue; text(`${i+1}　P${pad2(i+1)}　${[ph.area,...ph.tags].filter(Boolean).join('・')||'未分類'}${ph.打ち合わせメモ?`　${ph.打ち合わせメモ}`:''}`,{size:20}); }
+    for(const {p,i} of pins){ const ph=s.photos[i]; if(!ph) continue; text(`${i+1}　P${pad2(i+1)}　${[ph.area,...ph.tags].filter(Boolean).join('・')||'未分類'}${ph.memo?`　${ph.memo}`:''}`,{size:20}); }
+    (s.確認点||[]).forEach((c,i)=>{ const ph=c.photoId?s.photos.findIndex(x=>x.id===c.photoId):-1; text(`K${i+1}　${c.済?'済':'未'}　${c.内容||''}${ph>=0?`　→ P${pad2(ph+1)}`:''}${c.メモ?`　${c.メモ}`:''}`,{size:20,color:c.済?R_INK:R_WARN}); });
   }
 
   // checklist
@@ -1769,7 +2527,7 @@ async function buildReport(s,internal=true){
     ensure(96); P.g.fillStyle='#ECEDE6'; P.g.fillRect(M,P.y,PW-2*M,44); P.g.fillStyle=R_INK; P.g.font=font(20,700); P.g.fillText(grp.title,M+10,P.y+30); P.y+=44;
     for(const [k,label,kind,unit,req] of grp.items){
       const r=s.checks[k]||{}; P.g.font=font(20); const lh=30;
-      const la=wrap(P.g,label,cw[0]-20), lv=wrap(P.g,r.val!=null&&String(r.val).trim()!==''?`${kind==='num'?fmt(r.val):r.val}${unit?' '+unit:''}`:'—',cw[1]-20), lm=wrap(P.g,r.memo||'',cw[3]-20);
+      const la=wrap(P.g,label,cw[0]-20), lv=wrap(P.g,r.val!=null&&String(r.val).trim()!==''?`${kind==='num'?fmt(r.val):r.val}${unit?' '+unit:''}`:'—',cw[1]-20), lm=wrap(P.g,[r.memo||'',(r.photos||[]).map(id=>pno(s,s.photos.find(p=>p.id===id)||{})).filter(x=>x!=='P00').join(' ')].filter(Boolean).join('　'),cw[3]-20);
       const h=Math.max(la.length,lv.length,lm.length,1)*lh+18; ensure(h);
       const draw=(lines,x,color,w=400,mono=false)=>{ P.g.font=font(20,w,mono); P.g.fillStyle=color; lines.forEach((ln,j)=>P.g.fillText(ln,x+10,P.y+9+lh*j+21)); };
       draw(la,cx[0],req&&!isFilled(r)?R_WARN:R_INK,req?600:400); draw(lv,cx[1],R_INK,400,kind==='num'); if(r.j) draw([r.j],cx[2],r.j==='OK'?R_OK:r.j==='NG'?R_NG:R_WARN,700); draw(lm,cx[3],R_MUTED);
@@ -1785,7 +2543,7 @@ async function buildReport(s,internal=true){
       const y0=P.y; if(img){ P.g.save(); P.g.translate(M,y0); P.g.scale(k,k); P.g.drawImage(img,0,0,ph.w,ph.h); drawAnns(P.g,ph.ann,ph.w); P.g.restore(); }
       P.g.strokeStyle='#C9CCC2'; P.g.lineWidth=2; P.g.strokeRect(M,y0,dw,dh); P.y+=dh+12;
       const pin=s.pins.some(p=>p.photoId===ph.id);
-      text(`P${pad2(i+1)}　${[ph.area,...ph.tags].filter(Boolean).join('・')||'未分類'}${pin?`　図面ピン ${i+1}`:''}`,{size:22,w:700}); if(ph.打ち合わせメモ) text(ph.打ち合わせメモ,{size:20,color:R_MUTED}); P.y+=26;
+      text(`P${pad2(i+1)}　${[ph.area,...ph.tags].filter(Boolean).join('・')||'未分類'}${pin?`　図面ピン ${i+1}`:''}`,{size:22,w:700}); if(ph.memo) text(ph.memo,{size:20,color:R_MUTED}); P.y+=26;
     }
   }
 
@@ -1802,6 +2560,20 @@ async function buildReport(s,internal=true){
       if(it.取扱量) text(`取扱量 ${it.取扱量}`,{x,size:21}); if(it.備考) text(it.備考,{x,size:20,color:R_MUTED});
       P.y=Math.max(P.y,y0+th)+20; rule(); P.y+=24;
     }
+  }
+
+  // 計測（2026-11-06）
+  const mps=s.調査ポイント||[], mms=s.計測||[];
+  if(mps.length||mms.length){
+    add(); heading('作業時間・能力の計測');
+    mps.forEach(p=>{ const r=NC.pointResult(p,mms); ensure(150);
+      text(`${mpNo(s,p)}　${p.名前||'（名前なし）'}（${p.種類}）`,{size:26,w:700});
+      text([p.対象,p.担当?'担当 '+p.担当:'',p.目標?'目標 '+fmt(p.目標)+' 個/h':''].filter(Boolean).join('　')||'—',{size:20,color:R_MUTED});
+      text(r.回数?`結果　${r.文字}${r.判定?'　'+judgeLbl(r.判定)+(r.比!=null?'（目標の '+r.比+'%）':''):''}`:'まだ測っていません',{size:22,w:600,color:r.判定==='不足'?R_NG:R_INK});
+      msOf(s,p.id).forEach(m=>{ const st=NC.measureStats(m); text(`・${m.測った人||'?'}（${m.方法}）${st.文字||'印なし'}${m.メモ?'　'+m.メモ:''}`,{size:20});
+        if(st.要素.length) text('　'+st.要素.map(e=>`${e.要素} ${e.平均}秒×${e.回数}（${e.割合}%）`).join('　'),{size:18,color:R_MUTED}); });
+      P.y+=10; rule(); P.y+=22; });
+    const fr=mms.filter(m=>!mps.some(p=>p.id===m.pt)); if(fr.length){ ensure(80); text('ポイントなしの計測',{size:24,w:700}); fr.forEach(m=>text(`・${m.測った人||'?'}（${m.種類}・${m.方法}）${NC.measureStats(m).文字||'印なし'}`,{size:20})); }
   }
 
   const N=P.pages.length;
@@ -1839,6 +2611,7 @@ function envInfo(){
     ['ダウンロード（PC）',dl?'使える':'なし'],
     ['Claude の保存（downloads）',window.claude&&window.claude.use?'ある':'なし'],
     ['カメラ・写真',(()=>{ const i=document.createElement('input'); i.type='file'; return i.type==='file'?'ファイル選択はある（撮影はアプリ次第）':'なし'; })()],
+    ['オフラインで起動',navigator.serviceWorker&&navigator.serviceWorker.controller?'できる（端末にしまってある）':(state.sw||'なし')],
     ['音声メモ',SR&&!window.claude?'ブラウザのマイク':'キーボードのマイクで'],
     ['AI の自動入力',state.ai?'使える':'なし（Claude の中だけ）'],
   ];
@@ -1872,8 +2645,12 @@ async function buildExport(s){
   const blobs={}; for(const id of ids){ const r=await DB.get('blobs',id).catch(()=>null); if(r) blobs[id]=await blobToDataURL(r.blob); }
   return {app:'genchou-note',v:1,exportedAt:new Date().toISOString(),build:BUILD,survey:s,blobs,compass:NC?NC.toCompass(s):null};
 }
-async function exportJson(){
-  const s=cur(); busy(true,'バックアップを作っています…');
+async function exportJson(force){
+  const s=cur();
+  //  残りがあれば、書き出す前に知らせる（帰ってから気づかないように）
+  const pd=NC?NC.pending(s):{n:0};
+  if(pd.n&&force!==true){ confirmSheet(`まだ残りが ${pd.n}件あります（確認点 ${pd.kp.length}・必須の未入力 ${pd.req.length}・NG の写真なし ${pd.ngNoPhoto.length}・確かめること ${pd.ask.length}・計測 ${(pd.mt||[]).length}）。このまま書き出しますか？`,'このまま書き出す',()=>exportJson(true)); return; }
+  busy(true,'バックアップを作っています…');
   try{
     const data=await buildExport(s);
     const blob=new Blob([JSON.stringify(data)],{type:'application/json'}), name=`${NC?NC.fileStem(s):'現調バックアップ_'+safeName(s.客先名)+'_'+s.調査日}.json`; busy(false);
@@ -1930,7 +2707,7 @@ async function seedSample(){
   try{ await document.fonts.ready; }catch(e){}
   const s=blankSurvey();
   //  記入例の社名・拠点は架空のもの（配布/参考データ と同じ決まり。実在の会社名は使わない）
-  Object.assign(s,{客先名:'見本物流株式会社（記入例）',建屋名称:'東日本センター',現場住所:'神奈川県相模原市',調査者:'記入例',案件種別:['conv','agv'],エリア:['1F 入荷場','1F 保管エリア','1F 出荷場'],sample:true}); sampleHearing(s.hearing);
+  Object.assign(s,{客先名:'見本物流株式会社（記入例）',建屋名称:'東日本センター',現場住所:'神奈川県相模原市',調査者:'記入例',案件種別:['conv','agv'],エリア:['1F 入荷場','1F 保管エリア','1F 出荷場'],sample:true}); sampleHearing(s.hearing); s.聞く項目=SAMPLE_ASKS.map(a=>Object.assign({},a));
   const toBlob=(c,t='image/jpeg')=>new Promise(r=>c.toBlob(r,t,0.85));
   const P=[
     {area:'1F 保管エリア',tags:['柱','梁'],memo:'柱はRC 600角。梁下 6,500 を確認。',ann:[{type:'dim',p1:{x:650,y:430},p2:{x:950,y:430},v:600},{type:'dim',p1:{x:1040,y:180},p2:{x:1040,y:740},v:6500},{type:'text',p1:{x:560,y:820},s:'柱 600角（RC）'}]},
@@ -1948,17 +2725,189 @@ async function seedSample(){
   await saveSurvey(s); state.surveys.push(s);
 }
 
+/* ---------- 調査ポイントと計測（2026-11-06 利用者「作業時間・コンベヤの能力を写真や動画で測りたい・複数人で分担・図面に調査ポイント」） ----------
+   調査ポイント（s.調査ポイント）＝案件管理の事前準備で置いたもの＋現場で足したもの。計測（s.計測）＝1回ずつ。集計は NOTECOMPASS.measureStats／pointResult。
+   測り方は3つ：その場（ストップウォッチ）・動画（撮った／選んだ動画を見ながら印）・写真（撮った時刻＝EXIF の差で）。★動画は端末の中だけ（書き出さない） */
+const MPCOL={作業時間:'#7B4BC4',能力:'#0F8A8A'};
+function drawMp(g,x,y,label,kind,done,sel,k=1){ const c=MPCOL[kind]||MPCOL.作業時間, r=15*k; g.save(); g.beginPath(); g.arc(x,y,r,0,Math.PI*2); g.fillStyle=done?c:'#fff'; g.fill(); g.lineWidth=(sel?4:2.6)*k; g.strokeStyle=sel?'#19202D':c; g.stroke(); g.fillStyle=done?'#fff':c; g.font=font(11*k,700,true); g.textAlign='center'; g.textBaseline='middle'; g.fillText(label,x,y+0.5); g.restore(); }
+function hitMp(p){ const s=cur(); let best=null,bd=26; for(const c of (s.調査ポイント||[])){ if(c.x==null) continue; const q=toS(c); const d=Math.hypot(q.x-p.x,q.y-p.y); if(d<bd){ bd=d; best=c; } } return best; }
+const mpNo=(s,p)=>'M'+((s.調査ポイント||[]).indexOf(p)+1);
+const msOf=(s,id)=>(s.計測||[]).filter(m=>m.pt===id);
+const judgeLbl=j=>j==='OK'?'目標以上':j==='不足'?'目標に届かない':'';
+function mKinds(p,kind){ return kind==='能力'?[NC.EV_PASS]:((p&&p.要素&&p.要素.length)?p.要素:NC.WORK_ELEMENTS); }
+function viewMeas(s){
+  const pts=s.調査ポイント||[], who=s.調査者||'', onlyMine=state.mOnlyMine&&!!who;
+  const list=pts.map((p,i)=>({p,i})).filter(({p})=>!onlyMine||NC.mine(p,who));
+  const free=(s.計測||[]).filter(m=>!m.pt||!pts.some(p=>p.id===m.pt));
+  return `<div class="col">
+  <section class="card mecard"><div class="me-row"><span class="lbl">測る人（あなた）</span><b id="meName">${esc(who||'未設定')}</b><button class="btn sm ghost" data-act="setMe">${who?'変更':'名前を入れる'}</button></div>
+  <p class="muted small">複数人で調査するときは、それぞれ自分の名前を入れ、「自分の担当」の調査ポイントを測ります。書き出すファイルの名前にも付くので、案件管理で人ごとの結果をまとめて見られます。</p></section>
+  ${pts.length?`<div class="chips" role="group" aria-label="表示する調査ポイント"><button class="chip${onlyMine?' on':''}" data-act="mFilter" data-v="mine" aria-pressed="${onlyMine}">自分の担当 ${pts.filter(p=>NC.mine(p,who)).length}</button><button class="chip${!onlyMine?' on':''}" data-act="mFilter" data-v="all" aria-pressed="${!onlyMine}">すべて ${pts.length}</button></div>`:''}
+  <div class="addrow"><button class="btn" data-act="ptNew">＋ 調査ポイントを足す</button><button class="btn" data-act="mFree">ポイントなしで測る</button></div>
+  ${list.length?list.map(({p})=>ptCard(s,p)).join(''):`<div class="empty"><p>${pts.length?'自分の担当の調査ポイントはありません（「すべて」で全部を見られます）。':'調査ポイントはまだありません。'}</p><p class="muted small">案件管理の事前準備で置いた「調査ポイント」（作業時間・能力を測る場所）がここに並びます。現場で足すこともできます。</p></div>`}
+  ${free.length?`<section class="card"><h2>ポイントなしの計測</h2>${free.map(m=>mRow(s,m)).join('')}</section>`:''}
+  </div>`;
+}
+function ptCard(s,p){ const ms=msOf(s,p.id), r=NC.pointResult(p,s.計測||[]);
+  return `<section class="card ptcard" data-pt="${esc(p.id)}"><div class="pth"><span class="ptno" style="--pc:${MPCOL[p.種類]||MPCOL.作業時間}">${mpNo(s,p)}</span><b>${esc(p.名前||'（名前なし）')}</b><span class="chip sm">${esc(p.種類)}</span>${r.判定?`<span class="pill ${r.判定==='OK'?'ok':'ng'}">${judgeLbl(r.判定)}</span>`:''}</div>
+  <div class="ptmeta small muted">${esc([p.対象,p.担当?'担当 '+p.担当:'担当なし（全員）',p.目標?'目標 '+fmt(p.目標)+' 個/h':''].filter(Boolean).join(' ・ '))}</div>
+  ${p.メモ?`<p class="small">${esc(p.メモ)}</p>`:''}
+  ${r.回数?`<div class="ptres"><b class="mono">${esc(r.文字)}</b>${r.比!=null?`<span class="small muted">目標の ${r.比}%</span>`:''}</div>${ms.map(m=>mRow(s,m)).join('')}`:'<p class="small muted">まだ測っていません。</p>'}
+  <div class="mways"><button class="btn sm primary" data-act="mStart" data-id="${esc(p.id)}" data-way="その場">${ICON.watch}<span>その場で測る</span></button><button class="btn sm" data-act="mStart" data-id="${esc(p.id)}" data-way="動画">${ICON.video}<span>動画で</span></button><button class="btn sm" data-act="mStart" data-id="${esc(p.id)}" data-way="写真">${ICON.cam}<span>写真の時刻で</span></button></div>
+  <div class="ptfoot"><button class="btn sm ghost" data-act="ptEdit" data-id="${esc(p.id)}">編集</button>${s.drawing?`<button class="btn sm ghost" data-act="ptGo" data-id="${esc(p.id)}">${p.x!=null?'図面で見る':'図面に置く'}</button>`:''}</div></section>`; }
+function mRow(s,m){ const st=NC.measureStats(m), d=new Date(m.開始||0);
+  return `<button class="mrow" data-act="mOpen" data-id="${esc(m.id)}"><span class="mway">${esc(m.方法)}</span><span><b>${esc(st.文字||'（印なし）')}</b><small>${esc([m.測った人,isNaN(d)?'':d.toLocaleString('ja-JP',{month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'}),m.video?'動画あり':''].filter(Boolean).join(' ・ '))}</small></span></button>`; }
+/** 図面から押したとき：その調査ポイントのカードを小窓で */
+function openMpSheet(p){ const s=cur(); if(dv){ dv.sel=p.id; dDraw(); } openSheet(`${shHead(`調査ポイント <span class="mono">${mpNo(s,p)}</span>`)}${ptCard(s,p)}`,{onClose:()=>{ if(dv){ dv.sel=null; dDraw(); } }}); }
+/** 測る人の名前（この調査の調査者＋この端末に覚える） */
+function askMe(then){ const s=cur();
+  openSheet(`${shHead('測る人の名前')}<label class="fld">名前<input id="meIn" value="${esc(s.調査者||LS.get('surveyor',''))}" placeholder="例：山田 太郎" autocomplete="name"></label><p class="muted small">調査ポイントの「担当」と同じ書き方にすると、「自分の担当」で絞れます。</p><button class="btn primary block" id="meOk">決める</button>`,{onMount:sh=>{
+    const go=async()=>{ const v=$('#meIn',sh).value.trim(); if(!v){ toast('名前を入れてください'); return; } s.調査者=v; LS.set('surveyor',v); await saveSurvey(s); closeSheet(); render(); if(then) then(); };
+    $('#meOk',sh).onclick=go; $('#meIn',sh).onkeydown=e=>{ if(e.key==='Enter') go(); }; setTimeout(()=>{ try{ $('#meIn',sh).focus(); }catch(e){} },50); }}); }
+/** 調査ポイントの小窓（足す・直す）。at＝図面で押した場所 */
+function openPtSheet(p0,at){
+  const s=cur(), isNew=!p0, p=isNew?NC.point({id:'m'+uid(),x:at?at.x:null,y:at?at.y:null,担当:s.調査者||''}):Object.assign({},p0); let kind=p.種類;
+  const names=[...new Set((s.調査ポイント||[]).map(q=>q.担当).concat([s.調査者]).filter(Boolean))];
+  openSheet(`${shHead(isNew?'調査ポイントを足す':`調査ポイント <span class="mono">${mpNo(s,p0)}</span>`)}
+  <div class="seg full" role="group" aria-label="測るもの">${NC.MKINDS.map(k=>`<button type="button" class="${k===kind?'on':''}" data-pk="${k}" aria-pressed="${k===kind}">${k==='作業時間'?'作業時間（人）':'能力（設備）'}</button>`).join('')}</div>
+  <label class="fld">名前<input id="pt_名前" value="${esc(p.名前)}" placeholder="例：出荷検品・1番ラインの合流"></label>
+  <label class="fld">対象（ライン・作業）<input id="pt_対象" value="${esc(p.対象)}" placeholder="例：出荷ライン1・検品台3"></label>
+  <label class="fld">担当<input id="pt_担当" value="${esc(p.担当)}" list="ptWho" placeholder="空＝全員"><datalist id="ptWho">${names.map(n=>`<option value="${esc(n)}">`).join('')}</datalist></label>
+  <label class="fld">目標・必要な能力（個/h）<input id="pt_目標" inputmode="decimal" value="${esc(p.目標)}" placeholder="例：1200"></label>
+  <div class="pk-work"${kind==='作業時間'?'':' hidden'}><label class="fld">作業の要素（、で区切る）<input id="pt_要素" value="${esc((p.要素||[]).join('、'))}" placeholder="${esc(NC.WORK_ELEMENTS.join('、'))}"></label>
+  <div class="two"><label class="fld">1サイクルの個数<input id="pt_個数" inputmode="decimal" value="${esc(p.個数)}" placeholder="1"></label><label class="fld">人数<input id="pt_人数" inputmode="decimal" value="${esc(p.人数)}" placeholder="1"></label></div></div>
+  <div class="pk-cap"${kind==='能力'?'':' hidden'}><label class="fld">速度を測る区間の長さ（m・任意）<input id="pt_距離" inputmode="decimal" value="${esc(p.距離)}" placeholder="例：3"></label></div>
+  <label class="fld">メモ<textarea id="pt_メモ" rows="2">${esc(p.メモ)}</textarea></label>
+  <button class="btn primary block" id="ptSave">${isNew?'足す':'保存'}</button>
+  ${isNew?'':'<button class="btn danger block" id="ptDel">この調査ポイントを消す</button>'}`,{onClose:()=>{ if(dv){ dv.tmp=[]; dDraw(); } },onMount:sh=>{
+    $$('[data-pk]',sh).forEach(b=>b.onclick=()=>{ kind=b.dataset.pk; $$('[data-pk]',sh).forEach(x=>{ x.classList.toggle('on',x===b); x.setAttribute('aria-pressed',x===b); }); $('.pk-work',sh).hidden=kind!=='作業時間'; $('.pk-cap',sh).hidden=kind!=='能力'; });
+    $('#ptSave',sh).onclick=async()=>{ const v=k=>$('#pt_'+k,sh).value;
+      const q=NC.point(Object.assign({},p,{種類:kind,名前:v('名前'),対象:v('対象'),担当:v('担当'),目標:v('目標'),要素:v('要素'),個数:v('個数'),人数:v('人数'),距離:v('距離'),メモ:v('メモ')}));
+      s.調査ポイント=s.調査ポイント||[]; const o=s.調査ポイント.find(x=>x.id===q.id); if(o) Object.assign(o,q); else s.調査ポイント.push(q);
+      await saveSurvey(s); closeSheet(); render(); toast(isNew?'調査ポイントを足しました':'保存しました'); };
+    const del=$('#ptDel',sh); if(del) del.onclick=()=>confirmSheet(`調査ポイント「${p.名前||mpNo(s,p0)}」を消します（測った結果 ${msOf(s,p.id).length}件は「ポイントなしの計測」に残ります）。`,'消す',async()=>{ s.調査ポイント=s.調査ポイント.filter(x=>x.id!==p.id); (s.計測||[]).forEach(m=>{ if(m.pt===p.id) m.pt=''; }); await saveSurvey(s); render(); });
+  }});
+}
+function newMeasure(p,way,kind){ const s=cur(); return {id:'r'+uid(),pt:p?p.id:'',種類:p?p.種類:(kind||'能力'),方法:way,開始:new Date().toISOString(),測った人:s.調査者||'',長さ:0,ev:[],個数:p?p.個数:'',人数:p?p.人数:'',距離:p?p.距離:'',メモ:'',video:null}; }
+async function saveMeasure(m){ const s=cur(); s.計測=s.計測||[]; const i=s.計測.findIndex(x=>x.id===m.id); if(i>=0) s.計測[i]=m; else s.計測.push(m); await saveSurvey(s); }
+function startMeasure(pid,way,kind){ const s=cur(); const p=(s.調査ポイント||[]).find(x=>x.id===pid)||null;
+  if(!s.調査者){ askMe(()=>startMeasure(pid,way,kind)); return; }
+  closeSheet(); const m=newMeasure(p,way,kind);
+  if(way==='写真'){ pickFile('lib',fs=>fromPhotos(m,p,fs)); return; }
+  if(way==='動画'){ openSheet(`${shHead('動画で測る')}<p class="muted small">撮った動画を、ゆっくり再生しながら「通過」や作業の要素を押して印を付けます。動画はこの端末の中にだけ置き、書き出すファイルには入れません（時刻の印と結果だけ）。</p><div class="addrow"><button class="btn primary" id="vCam">${ICON.video}撮影する</button><button class="btn" id="vLib">ライブラリから</button></div>`,{onMount:sh=>{
+      const go=fs=>loadVideo(m,p,fs[0]); $('#vCam',sh).onclick=()=>pickFile('vcam',go); $('#vLib',sh).onclick=()=>pickFile('vlib',go); }}); return; }
+  openRunner(m,p);
+}
+async function loadVideo(m,p,f){ if(!f) return; busy(true,'動画を端末にしまっています…'); try{ const blobId=await putBlob(f); m.video={blobId,name:f.name||'動画',size:f.size||0}; busy(false); closeSheet(); openRunner(m,p); }catch(e){ busy(false); toast('動画をしまえませんでした。端末の空き容量を確かめてください'); } }
+/** 写真の時刻で測る：選んだ写真の撮影時刻（EXIF。無ければファイルの時刻）を並べて印にする。ラベルは結果の小窓で直す */
+async function fromPhotos(m,p,fs){
+  busy(true,'写真の撮影時刻を読んでいます…'); const rows=[]; let noExif=0;
+  for(const f of fs){ let tm=null; try{ tm=NC.exifTime(await f.arrayBuffer()); }catch(e){} if(!tm){ noExif++; tm=f.lastModified||Date.now(); } const ids=await addPhotos([f]); if(ids[0]) rows.push({tm,ph:ids[0]}); }
+  busy(false); if(!rows.length){ toast('写真を読み込めませんでした'); return; }
+  rows.sort((a,b)=>a.tm-b.tm); const t0=rows[0].tm, ks=mKinds(p,m.種類);
+  m.ev=rows.map((r,i)=>({t:Math.round((r.tm-t0)/10)/100,k:m.種類==='能力'?NC.EV_PASS:(i===rows.length-1&&rows.length>1?NC.EV_CYCLE:ks[i%ks.length]),ph:r.ph}));
+  m.開始=new Date(t0).toISOString(); m.長さ=m.ev[m.ev.length-1].t;
+  await saveMeasure(m); render();
+  openMResult(m,{note:noExif?`撮影時刻（EXIF）が無い写真が ${noExif}枚あり、ファイルの時刻を使いました。時刻が正しいかを確かめてください。`:`写真 ${rows.length}枚の撮影時刻から印を作りました。それぞれの印の種類を確かめてください。`});
+}
+/* 計測の画面（全画面）。その場＝時計、動画＝再生位置 */
+let RUN=null;
+const fmtT=t=>{ t=Math.max(0,t||0); const mm=Math.floor(t/60), ss=t-mm*60; return mm+':'+(ss<10?'0':'')+ss.toFixed(1); };
+function openRunner(m,p){
+  const s=cur(), kind=m.種類, vid=m.方法==='動画', el=$('#mRun');
+  RUN={m,p,t0:null,wall0:null,timer:null,wake:null,v:null,cur:''};
+  const ks=mKinds(p,kind), hasD=kind==='能力'&&!!NC.num(m.距離);
+  const pad=kind==='能力'?`<button class="mbig" data-mk="${NC.EV_PASS}">通過<small>1つ通るたびに押す</small></button>${hasD?`<div class="mab"><button class="mel" data-mk="${NC.EV_A}">始点<small>区間に入った</small></button><button class="mel" data-mk="${NC.EV_B}">終点<small>${esc(m.距離)} m 先</small></button></div>`:''}`
+    :`${ks.map(k=>`<button class="mel" data-mk="${esc(k)}">${esc(k)}</button>`).join('')}<button class="mel cut" data-mk="${NC.EV_CYCLE}">1サイクル終わり<small>次のサイクルへ</small></button>`;
+  el.innerHTML=`<div class="mr-h"><button class="iconbtn" id="mrX" aria-label="計測をやめる">${ICON.x}</button><div class="ttl"><b>${esc(p?mpNo(s,p)+' '+(p.名前||'調査ポイント'):'ポイントなし')}</b><span>${esc([kind,m.方法,p&&p.目標?'目標 '+fmt(p.目標)+' 個/h':'',m.測った人].filter(Boolean).join(' ・ '))}</span></div></div>
+  ${vid?`<div class="mr-v"><video id="mrVideo" playsinline controls preload="auto"></video><div class="mr-vc">${[0.25,0.5,1,2].map(r=>`<button type="button" data-rate="${r}"${r===1?' class="on"':''}>${r}×</button>`).join('')}${[[-1,'−1秒'],[-0.1,'−0.1'],[0.1,'+0.1'],[1,'+1秒']].map(([d,l])=>`<button type="button" data-step="${d}">${l}</button>`).join('')}</div></div>`:''}
+  <div class="mr-clock"><b class="mono" id="mrT">0:00.0</b><span id="mrStat" class="mono small"></span></div>
+  <div class="mr-pad ${kind==='能力'?'cap':'work'}">${pad}</div>
+  <div class="mr-log mono small" id="mrLog">${vid?'再生しながら、そのときに押します（止めて押しても同じ）':'押した時から時計が動きます（「開始」でも）'}</div>
+  <div class="mr-foot${vid?' v2':''}"><button class="btn" id="mrUndo">${ICON.undo}取り消し</button>${vid?'':`<button class="btn" id="mrCam">${ICON.cam}撮って印</button>`}<button class="btn primary" id="mrGo">${vid?'終わり（ここまで）':'開始'}</button></div>`;
+  el.hidden=false; document.body.classList.add('mrun');
+  if(vid){ const v=$('#mrVideo',el); RUN.v=v; blobURL(m.video&&m.video.blobId).then(u=>{ if(u) v.src=u; else toast('動画が見つかりません'); });
+    v.ontimeupdate=()=>runPaint(); $$('[data-rate]',el).forEach(b=>b.onclick=()=>{ v.playbackRate=+b.dataset.rate; $$('[data-rate]',el).forEach(x=>x.classList.toggle('on',x===b)); });
+    $$('[data-step]',el).forEach(b=>b.onclick=()=>{ v.pause(); v.currentTime=Math.max(0,Math.min(v.duration||1e9,v.currentTime+(+b.dataset.step))); runPaint(); }); }
+  $$('[data-mk]',el).forEach(b=>{ b.onclick=()=>runMark(b.dataset.mk); });
+  $('#mrUndo',el).onclick=()=>{ const ev=RUN.m.ev; if(!ev.length) return; const e=ev.pop(); if(navigator.vibrate) try{ navigator.vibrate(30); }catch(x){} runPaint(); toast(`取り消しました（${e.k} ${fmtT(e.t)}）`); };
+  const cam=$('#mrCam',el); if(cam) cam.onclick=()=>{ if(RUN.t0==null) runStart(); pickFile('cam',async fs=>{ const f=fs[0]; let tm=null; try{ tm=NC.exifTime(await f.arrayBuffer()); }catch(e){} const now=Date.now(); if(!tm||tm<RUN.wall0-5000||tm>now+5000) tm=now; const ids=await addPhotos([f]); runMark(kind==='能力'?NC.EV_PASS:NC.EV_PHOTO,ids[0]||null,Math.max(0,(tm-RUN.wall0)/1000)); }); };
+  $('#mrGo',el).onclick=()=>{ if(!vid&&RUN.t0==null){ runStart(); return; } runFinish(); };
+  $('#mrX',el).onclick=()=>{ if(RUN.m.ev.length&&!RUN.resume) confirmSheet(`印が ${RUN.m.ev.length}個あります。保存せずにやめますか？`,'保存せずにやめる',()=>runClose(true)); else runClose(!RUN.resume); };
+  if(m.ev.length) RUN.resume=true;
+  runPaint();
+}
+function runNow(){ if(!RUN) return 0; if(RUN.v) return RUN.v.currentTime||0; return RUN.t0==null?0:(performance.now()-RUN.t0)/1000; }
+function runStart(){ if(!RUN||RUN.t0!=null) return; RUN.t0=performance.now(); RUN.wall0=Date.now(); RUN.m.開始=new Date(RUN.wall0).toISOString();
+  RUN.timer=setInterval(()=>{ const t=$('#mrT'); if(t) t.textContent=fmtT(runNow()); },100); const go=$('#mrGo'); if(go){ go.textContent='終了'; go.classList.add('danger'); go.classList.remove('primary'); }
+  try{ if(navigator.wakeLock) navigator.wakeLock.request('screen').then(w=>{ RUN&&(RUN.wake=w); }).catch(()=>{}); }catch(e){} }
+function runMark(k,ph,t){ if(!RUN) return; if(!RUN.v&&RUN.t0==null) runStart(); const tt=t!=null?t:runNow(); RUN.m.ev.push(Object.assign({t:Math.round(tt*100)/100,k},ph?{ph}:{}));
+  if(k!==NC.EV_PHOTO&&k!==NC.EV_A&&k!==NC.EV_B) RUN.cur=k===NC.EV_CYCLE?'':k; if(navigator.vibrate) try{ navigator.vibrate(12); }catch(e){} runPaint(); }
+function runPaint(){ if(!RUN) return; const el=$('#mRun'), m=RUN.m, now=runNow(); const t=$('#mrT',el); if(t) t.textContent=fmtT(now);
+  const st=NC.measureStats(Object.assign({},m,{長さ:Math.max(now,0)}));
+  const sEl=$('#mrStat',el); if(sEl) sEl.textContent=m.種類==='能力'?`通過 ${st.n}${st.値!=null?' ・ '+Math.round(st.値).toLocaleString('ja-JP')+' 個/h':''}`:`サイクル ${st.サイクル.length}${st.サイクル秒!=null&&st.サイクル.length?' ・ 平均 '+st.サイクル秒+'秒':''}`;
+  $$('.mel[data-mk]',el).forEach(b=>b.classList.toggle('on',!!RUN.cur&&b.dataset.mk===RUN.cur));
+  const lg=$('#mrLog',el); if(lg&&m.ev.length) lg.textContent=m.ev.slice(-4).map(e=>`${fmtT(e.t)} ${e.k}`).join('　'); }
+async function runFinish(){ if(!RUN) return; const m=RUN.m, now=runNow(); if(!m.ev.length){ toast('まだ印がありません'); return; }
+  const last=Math.max(...m.ev.map(e=>e.t)); m.長さ=Math.round(Math.max(now,last)*100)/100; const keep=m; runClose(false); await saveMeasure(keep); render(); openMResult(keep); }
+async function runClose(discard){ if(!RUN) return; const r=RUN; RUN=null; clearInterval(r.timer); try{ r.wake&&r.wake.release(); }catch(e){} if(r.v){ try{ r.v.pause(); }catch(e){} }
+  const el=$('#mRun'); el.hidden=true; el.innerHTML=''; document.body.classList.remove('mrun');
+  if(discard&&r.m.video&&!(cur().計測||[]).some(x=>x.id===r.m.id)){ try{ await DB.del('blobs',r.m.video.blobId); }catch(e){} } }
+/** 計測の結果（集計・印の一覧を直す・個数／人数／距離・メモ）。直すたびにその場で保存 */
+function openMResult(m,opt={}){
+  const s=cur(), p=(s.調査ポイント||[]).find(x=>x.id===m.pt)||null;
+  const ks=m.種類==='能力'?[NC.EV_PASS,NC.EV_A,NC.EV_B,NC.EV_PHOTO]:[...new Set([...mKinds(p,'作業時間'),...m.ev.map(e=>e.k)])].filter(k=>k!==NC.EV_CYCLE&&k!==NC.EV_PHOTO).concat([NC.EV_CYCLE,NC.EV_PHOTO]);
+  const body=()=>{ const st=NC.measureStats(m), j=p?NC.judgeOf(p.目標,st.値):'';
+    const big=m.種類==='能力'?(st.値!=null?`<b class="mono">${Math.round(st.値).toLocaleString('ja-JP')}</b><span>個/h</span>`:'<span class="muted">通過が2つ以上で出ます</span>'):(st.一人!=null?`<b class="mono">${st.サイクル秒}</b><span>秒/サイクル</span><b class="mono">${Math.round(st.一人).toLocaleString('ja-JP')}</b><span>個/h（1人）</span>`:'<span class="muted">要素の印が要ります</span>');
+    const tbl=m.種類==='能力'?`<table class="mtbl"><tr><th>項目</th><th>値</th></tr><tr><td>通過</td><td class="mono">${st.n}</td></tr>${st.間隔?`<tr><td>間隔（平均・最小・最大）</td><td class="mono">${st.間隔.平均}・${st.間隔.最小}・${st.間隔.最大} 秒</td></tr>`:''}${st.時間あたり!=null?`<tr><td>計測時間あたり（止まりも込み）</td><td class="mono">${Math.round(st.時間あたり).toLocaleString('ja-JP')} 個/h</td></tr>`:''}${st.速度?`<tr><td>区間の時間${st.速度.平均!=null?'・速度':''}</td><td class="mono">${st.速度.秒} 秒${st.速度.平均!=null?'・'+st.速度.平均+' m/min':''}（${st.速度.n}回）</td></tr>`:''}<tr><td>計測の長さ</td><td class="mono">${fmtT(st.長さ)}</td></tr></table>`
+      :`<table class="mtbl"><tr><th>要素</th><th>回数</th><th>平均</th><th>最小〜最大</th><th>割合</th></tr>${st.要素.map(e=>`<tr><td>${esc(e.要素)}</td><td class="mono">${e.回数}</td><td class="mono">${e.平均}秒</td><td class="mono">${e.最小}〜${e.最大}</td><td class="mono">${e.割合}%</td></tr>`).join('')}</table>${st.サイクル.length?`<p class="small muted mono">サイクル：${st.サイクル.join('・')} 秒</p>`:''}`;
+    return `<div class="mres-big">${big}${j?`<span class="pill ${j==='OK'?'ok':'ng'}">${judgeLbl(j)}（目標 ${fmt(p.目標)} 個/h）</span>`:''}</div>${tbl}
+    <details class="mevs"${opt.note?' open':''}><summary>印の一覧（${m.ev.length}）・直す</summary>${[...m.ev].map((e,i)=>({e,i})).sort((a,b)=>a.e.t-b.e.t).map(({e,i})=>{ const ph=e.ph?s.photos.find(x=>x.id===e.ph):null; return `<div class="mev"><span class="mono">${fmtT(e.t)}</span><select data-mev="${i}" aria-label="印の種類">${[...new Set(ks.concat([e.k]))].map(k=>`<option${k===e.k?' selected':''}>${esc(k)}</option>`).join('')}</select>${ph?`<button class="mph" data-act="openPhoto" data-id="${ph.id}">${esc(pno(s,ph))}</button>`:'<span></span>'}<button data-mdel="${i}" aria-label="この印を消す">✕</button></div>`; }).join('')}</details>`; };
+  openSheet(`${shHead(`${esc(p?mpNo(s,p)+' '+(p.名前||''):'ポイントなし')}　<span class="small muted">${esc(m.種類)}・${esc(m.方法)}</span>`)}
+  ${opt.note?`<div class="callout warn"><span>${esc(opt.note)}</span></div>`:''}
+  <div id="mrBody">${body()}</div>
+  ${m.種類==='能力'?`<label class="fld">速度を測る区間の長さ（m）<input id="mr_距離" inputmode="decimal" value="${esc(m.距離)}"></label>`:`<div class="two"><label class="fld">1サイクルの個数<input id="mr_個数" inputmode="decimal" value="${esc(m.個数)}" placeholder="1"></label><label class="fld">人数<input id="mr_人数" inputmode="decimal" value="${esc(m.人数)}" placeholder="1"></label></div>`}
+  <label class="fld">メモ<textarea id="mr_メモ" rows="2" placeholder="例：14時台・ピークの手前。1人休憩中">${esc(m.メモ)}</textarea></label>
+  ${m.video?`<button class="btn block" id="mrReplay">${ICON.video}動画を見直す（印を足す）</button>`:''}
+  <button class="btn primary block" data-act="closeSheet">閉じる</button>
+  <div class="addrow"><button class="btn danger" id="mrDel">この計測を消す</button>${m.video?'<button class="btn danger" id="mrVDel">動画だけ消す</button>':''}</div>`,{onMount:sh=>{
+    const save=async()=>{ await saveMeasure(m); $('#mrBody',sh).innerHTML=body(); render(); };
+    ['距離','個数','人数','メモ'].forEach(k=>{ const i=$('#mr_'+k,sh); if(i) i.onchange=()=>{ m[k]=i.value.trim(); save(); }; });
+    sh.addEventListener('change',e=>{ const t=e.target; if(t.dataset&&t.dataset.mev!=null){ m.ev[+t.dataset.mev].k=t.value; save(); } });
+    sh.addEventListener('click',e=>{ const b=e.target.closest('[data-mdel]'); if(!b) return; m.ev.splice(+b.dataset.mdel,1); save(); });
+    const rp=$('#mrReplay',sh); if(rp) rp.onclick=()=>{ closeSheet(); openRunner(m,p); };
+    $('#mrDel',sh).onclick=()=>confirmSheet('この計測を消します（元に戻せません）。','消す',async()=>{ s.計測=(s.計測||[]).filter(x=>x.id!==m.id); if(m.video) try{ await DB.del('blobs',m.video.blobId); }catch(e){} await saveSurvey(s); render(); toast('計測を消しました'); });
+    const vd=$('#mrVDel',sh); if(vd) vd.onclick=()=>confirmSheet('動画を端末から消します（印と結果は残ります）。','消す',async()=>{ try{ await DB.del('blobs',m.video.blobId); }catch(e){} m.video=null; await saveMeasure(m); closeSheet(); render(); toast('動画を消しました'); });
+  }});
+}
+/** ポイントなしで測る（種類と測り方を選ぶ） */
+function openFreeSheet(){ let kind='能力';
+  openSheet(`${shHead('ポイントなしで測る')}<div class="seg full" role="group" aria-label="測るもの">${NC.MKINDS.map(k=>`<button type="button" class="${k===kind?'on':''}" data-pk="${k}">${k}</button>`).join('')}</div><p class="muted small">あとで調査ポイントに結び付けることはできません。続けて測る場所なら、先に「＋ 調査ポイントを足す」が便利です。</p>
+  <div class="mways"><button class="btn sm primary" data-fw="その場">${ICON.watch}<span>その場で測る</span></button><button class="btn sm" data-fw="動画">${ICON.video}<span>動画で</span></button><button class="btn sm" data-fw="写真">${ICON.cam}<span>写真の時刻で</span></button></div>`,{onMount:sh=>{
+    $$('[data-pk]',sh).forEach(b=>b.onclick=()=>{ kind=b.dataset.pk; $$('[data-pk]',sh).forEach(x=>x.classList.toggle('on',x===b)); });
+    $$('[data-fw]',sh).forEach(b=>b.onclick=()=>startMeasure('',b.dataset.fw,kind)); }}); }
+
 /* ---------- events ---------- */
 const ACT={
   back(){ micStop(); state.view='list'; render(); },
+  setMe(){ askMe(); },
+  mFilter(el){ state.mOnlyMine=el.dataset.v==='mine'; render(); },
+  ptNew(){ openPtSheet(null); },
+  ptEdit(el){ const s=cur(); const p=(s.調査ポイント||[]).find(x=>x.id===el.dataset.id); if(p){ closeSheet(); openPtSheet(p); } },
+  ptGo(el){ const s=cur(); const p=(s.調査ポイント||[]).find(x=>x.id===el.dataset.id); if(!p||!s.drawing) return; closeSheet(); if(p.x==null){ state.placePt=p.id; toast(`図面の、${mpNo(s,p)} を置く場所を押してください`); } else state.focusMp=p.id; state.tab='drawing'; render(); },
+  mStart(el){ startMeasure(el.dataset.id,el.dataset.way); },
+  mOpen(el){ const s=cur(); const m=(s.計測||[]).find(x=>x.id===el.dataset.id); if(m){ closeSheet(); openMResult(m); } },
+  mFree(){ openFreeSheet(); },
+  sideMp(el){ const s=cur(); const c=(s.調査ポイント||[]).find(x=>x.id===el.dataset.id); if(!c) return; if(c.x!=null&&dv){ dv.s=Math.max(dv.s,dv.fitS*2); dv.tx=dv.W/2-c.x*dv.s; dv.ty=dv.H/2-c.y*dv.s; dDraw(); } openMpSheet(c); },
   newSurvey(){ openSurveyForm(blankSurvey(),true); },
   openSurvey(el){ state.cur=el.dataset.id; state.view='survey'; state.tab='photos'; state.areaFilter=''; state.onlyEmpty=false; dv=null; render(); },
   editSurvey(){ openSurveyForm(cur(),false); },
-  tab(el){ micStop(); state.tab=el.dataset.tab; render(); },
+  tab(el){ micStop(); state.placePt=null; state.tab=el.dataset.tab; render(); },
   mic(){ micToggle(); },
   area(el){ state.areaFilter=el.dataset.v; render(); },
-  addCam(){ pickFile('cam',addPhotos); },
-  addLib(){ pickFile('lib',addPhotos); },
+  addCam(){ pickFile('cam',fs=>addPhotos(fs,{src:'cam',autoPin:true})); },
+  addLib(){ pickFile('lib',fs=>addPhotos(fs,{autoPin:true})); },
+  geoSheet(){ openGeoSheet(); },
   openPhoto(el){ openPhoto(el.dataset.id); },
   closeSheet(){ closeSheet(); },
   dmode(el){ setDmode(el.dataset.m); },
@@ -1967,6 +2916,12 @@ const ACT={
   judge(el){ const s=cur(), k=el.dataset.k, j=el.dataset.j; const r=s.checks[k]=s.checks[k]||{}; r.j=r.j===j?'':j; saveSurvey(s);
     const row=el.closest('.ckrow'); $$('.jb',row).forEach(b=>{ const on=b.dataset.j===r.j; b.classList.toggle('on',on); b.setAttribute('aria-pressed',on); }); row.classList.toggle('j-ng',r.j==='NG'); $('#cksum').innerHTML=ckSum(s); },
   onlyEmpty(){ state.onlyEmpty=!state.onlyEmpty; render(); },
+  ckPhoto(el){ const s=cur(), k=el.dataset.k; pickFile('cam',async fs=>{ const ids=await addPhotos(fs,{src:'cam',autoPin:true}); if(!ids.length) return; const r=s.checks[k]=s.checks[k]||{}; r.photos=(r.photos||[]).concat(ids);
+    const it=NC.checkItem(k); ids.forEach(id=>{ const ph=s.photos.find(p=>p.id===id); if(ph&&it&&!ph.memo) ph.memo=it.label; });
+    await saveSurvey(s); state.tab='check'; render(); toast(`「${it?it.label:k}」に写真を付けました`); }); },
+  sideKp(el){ const s=cur(); const c=(s.確認点||[]).find(x=>x.id===el.dataset.id); if(!c||!dv) return; dv.s=Math.max(dv.s,dv.fitS*2); dv.tx=dv.W/2-c.x*dv.s; dv.ty=dv.H/2-c.y*dv.s; dDraw(); openKpSheet(c); },
+  sidePin(el){ const s=cur(); const p=s.pins.find(x=>x.id===el.dataset.id); if(!p||!dv) return; dv.s=Math.max(dv.s,dv.fitS*2); dv.tx=dv.W/2-p.x*dv.s; dv.ty=dv.H/2-p.y*dv.s; dDraw(); openPinSheet(p); },
+  goKp(el){ const s=cur(); const c=(s.確認点||[]).find(x=>x.id===el.dataset.id); if(!c) return; if(!s.drawing){ toast('図面がありません'); return; } state.focusKp=c.id; state.tab='drawing'; render(); },
   hrPurpose(el){ const s=cur(), h=s.hearing, v=el.dataset.v; h.導入目的=h.導入目的.includes(v)?h.導入目的.filter(x=>x!==v):[...h.導入目的,v]; el.classList.toggle('on'); el.setAttribute('aria-pressed',h.導入目的.includes(v)); saveSurvey(s); },
   aiFill(){ aiFill(); },
   rFor(el){ state.rFor=el.dataset.v; render(); },
@@ -1980,8 +2935,10 @@ const ACT={
 };
 document.addEventListener('click',e=>{ const a=e.target.closest('[data-act]'); if(!a) return; const f=ACT[a.dataset.act]; if(f){ e.preventDefault(); f(a,e); } });
 document.addEventListener('input',e=>{ const el=e.target; if(!el.dataset) return;
+  if(el.dataset.ask!=null){ const s=cur(); if(!s) return; const a=(s.聞く項目||[])[+el.dataset.ask]; if(a){ a.値=el.value; if(a.ai){ delete a.ai; const lab=el.closest('.aif'); if(lab) lab.classList.remove('aif'); } saveSoon(s); } return; }
   if(el.dataset.hr){ const s=cur(); if(!s) return; const k=el.dataset.hr, h=s.hearing; h[k]=el.value; if(h.ai.includes(k)){ h.ai=h.ai.filter(x=>x!==k); const lab=el.closest('.aif'); if(lab) lab.classList.remove('aif'); } saveSoon(s); return; }
   if(!el.dataset.ck) return; const s=cur(); if(!s) return; const k=el.dataset.ck; const r=s.checks[k]=s.checks[k]||{}; r[el.dataset.f]=el.value; saveSoon(s); const sum=$('#cksum'); if(sum&&el.dataset.f==='val'){ const chip=$('[data-act="onlyEmpty"]',sum); sum.innerHTML=ckSum(s); } });
+document.addEventListener('change',e=>{ const el=e.target; if(el&&el.dataset&&el.dataset.ask!=null&&el.tagName==='SELECT'){ const s=cur(); if(!s) return; const a=(s.聞く項目||[])[+el.dataset.ask]; if(a){ a.値=el.value; saveSurvey(s); } } });
 document.addEventListener('keydown',e=>{ if(e.key==='Escape'){ if(!$('#sheetRoot').hidden) closeSheet(); else if(ed) closeEditor(); } });
 
 /* ---------- boot ---------- */
@@ -1998,8 +2955,11 @@ document.addEventListener('keydown',e=>{ if(e.key==='Escape'){ if(!$('#sheetRoot
   for(const s of state.surveys){ if(!s.hearing){ s.hearing=blankHearing(); if(s.sample) sampleHearing(s.hearing); saveSurvey(s); } else { const b=blankHearing(); for(const k in b) if(s.hearing[k]==null) s.hearing[k]=b[k]; } }
   render();
   if(window.claude&&window.claude.use){ window.claude.use('sample').then(ns=>{ state.ai=ns||null; refreshAi(); }).catch(()=>{}); }
+  //  オフラインで起動できるように（sw.js が index.html などを端末にしまう。https の公開先だけ。2026-11-04）
+  try{ if('serviceWorker' in navigator&&location.protocol==='https:'&&!window.claude){ navigator.serviceWorker.register('sw.js').then(r=>{ state.sw='登録済み'; }).catch(e=>{ state.sw='失敗：'+(e&&e.message||e); }); } else state.sw='なし（https の公開先でだけ使う）'; }catch(e){ state.sw='なし'; }
   //  検査（test/note-ui-test.mjs）が中を見るための窓口。画面からは使わない
-  window.__NOTE={state,cur,render,importObject,buildExport,startFromSeed,buildReport,checkStats,DB,BUILD,TABS,CHECKS,HEAR,saveSurvey,saveFile,envInfo,envTest};
+  window.__NOTE={GEO,autoPlace,geoRefAt,openGeoSheet,addPhotos,pickFile,openPinSheet,dDraw,dTap,startMeasure,openRunner,runMark,runStart,runFinish,openMResult,openPtSheet,saveMeasure,fromPhotos,get RUN(){ return RUN; },state,cur,render,importObject,buildExport,startFromSeed,buildReport,checkStats,DB,BUILD,TABS,CHECKS,HEAR,saveSurvey,saveFile,envInfo,envTest};
+  window.__openKp=openKpSheet;
 })();
 </script>
 

@@ -1,0 +1,11 @@
+コンパスノート（GitHub Pages に置くもの）
+
+このフォルダの5つのファイルを、GitHub のリポジトリのいちばん上に、同じ名前で上げてください（Add file → Upload files）。
+  index.html            … アプリ本体
+  sw.js                 … 電波が無くても起動するための仕組み（Service Worker）
+  manifest.webmanifest  … ホーム画面のアイコン・名前
+  icon-180.png・icon-512.png … アイコン
+
+作り直したら、5つとも上げ直してください（sw.js の中の版が変わると、iPhone の中の古い版が入れ替わります）。
+iPhone では Safari で開いて「ホーム画面に追加」。一度電波のある所で開くと、そのあとは電波が無くても起動します。
+このファイル（はじめに.txt）は上げなくてかまいません。

@@ -70,7 +70,7 @@
     var d = (rec && rec.data) || {}, n = 0, ids = [];
     F.stepsOf(false).forEach(function (s) { ids = ids.concat(s.ids); });
     ids.forEach(function (id) {
-      var v = d[id];
+      var v = F.value ? F.value(id, d) : d[id];
       if (Array.isArray(v) ? v.length : str(v).trim()) n++;
     });
     return { n: n, 全: ids.length };
@@ -87,8 +87,21 @@
 
   // ── 自動保存 ───────────────────────────────────
   function 汚れた() {
+    追従();
     clearTimeout(S.timer);
     S.timer = setTimeout(保存, 400);              // 打つたびではなく、手が止まったら
+  }
+  /** 0次の答えが変わったら、それで決まる欄（社内版の derive）を描き直す（決まり方が変わったものだけ） */
+  function 追従() {
+    if (!F.follow || !S.rec) return;
+    var box = document.getElementById('form');
+    if (!box) return;
+    box.querySelectorAll('[data-follow]').forEach(function (w) {
+      var id = w.getAttribute('data-fid'), f = F.get(id);
+      if (!f) return;
+      if (JSON.stringify(F.follow(f, S.rec.data)) === w.getAttribute('data-sig')) return;
+      w.parentNode.replaceChild(欄を作る(id), w);
+    });
   }
   function 保存() {
     if (!S.id || !S.rec) return;
@@ -115,6 +128,7 @@
 
   function 描く() {
     ['list', 'edit', 'out'].forEach(function (v) { $('v-' + v).classList.toggle('hide', v !== S.view); });
+    if (S.view !== 'list') $('top-app').classList.add('hide');
     if (S.view === 'list') 一覧を描く();
     if (S.view === 'edit') 入力を描く();
     if (S.view === 'out') 出力を描く();
@@ -122,10 +136,13 @@
 
   // ── ① 一覧 ─────────────────────────────────────
   function 一覧を描く() {
-    $('top-title').textContent = 'コンパスヒヤリング';
+    $('top-title').textContent = document.title || 'コンパスヒヤリング';   // 社内版は「コンパスヒヤリング（社内）」（build が題を変える）
     $('top-sub').textContent = '打合せのヒヤリングを、この端末の中だけに保存します';
     $('top-left').classList.add('hide');
     $('top-right').classList.add('hide');
+    //  コンパスノート（現場調査）へ（2026-11-09 利用者「ノートとヒヤリングに相互リンク」）。
+    //  ノートは同じ公開先の1つ上（../）。file:// や Claude の中では行き先が無いので出さない
+    $('top-app').classList.toggle('hide', location.protocol !== 'https:' && !/^(localhost|127\.0\.0\.1)$/.test(location.hostname));
     $('dots').classList.add('hide');
 
     var box = $('list'); box.textContent = '';
@@ -177,8 +194,25 @@
     if (!S.rec) { toast('開けませんでした'); return; }
     if (!S.rec.data) S.rec.data = {};
     if (!S.rec.actions) S.rec.actions = [];
+    if (読み替え(S.rec)) 保存();
     S.step = 0; S.cands = []; S.acands = []; S.使った = {};
     go('edit', { step: 0 });
+  }
+  /**
+   * 前の版で入れた値を、いまの欄へ移す（fields.js の rename。入れ先が空のときだけ・元の欄は消す）。
+   *   2026-11-09 競合・コンペの有無・コンペ競合 → 競合他社（競合有無）・競合他社名（競合社名）。移したら true
+   */
+  function 読み替え(rec) {
+    var d = rec && rec.data, map = F.rename || {}, n = 0;
+    if (!d) return false;
+    Object.keys(map).forEach(function (from) {
+      var v = d[from];
+      if (v == null || (Array.isArray(v) ? !v.length : !str(v).trim())) { delete d[from]; return; }
+      var to = map[from];
+      if (!str(d[to]).trim()) d[to] = v;
+      delete d[from]; n++;
+    });
+    return n > 0;
   }
 
   // ── ② 入力 ─────────────────────────────────────
@@ -221,6 +255,21 @@
     var f = F.get(id);
     if (!f) return el('div');
     var wrap = el('div', 'fld');
+    //  社内版の「1回の答えで両方が埋まる欄」（fields.js の derive）。0次の答えで決まれば聞かない・選択肢を絞る
+    if (f.derive && F.follow) {
+      var w = F.follow(f, S.rec.data);
+      wrap.className = 'fld follow';
+      wrap.setAttribute('data-follow', f.derive.from);
+      wrap.setAttribute('data-fid', id);
+      wrap.setAttribute('data-sig', JSON.stringify(w));
+      if (!w.show) {
+        var fromF = F.get(f.derive.from);
+        if (w.auto) wrap.appendChild(el('div', 'follow-auto', f.label + '：' + w.auto + '（「' + (fromF ? fromF.label : f.derive.from) + '」の答えから）'));
+        else wrap.classList.add('hide');
+        return wrap;
+      }
+      f = Object.assign({}, f, { opts: w.opts });
+    }
     var lab = el('label');
     lab.appendChild(document.createTextNode(f.label));
     if (f.star) {
@@ -229,7 +278,7 @@
       lab.appendChild(s);
     }
     if (f.k) {
-      var k = el('span', 'kind k-' + f.k, { pre: '訪問前', z0: '0次', hard: '聞ければ' }[f.k]);
+      var k = el('span', 'kind k-' + f.k, { pre: '訪問前', z0: '0次', hard: '聞ければ', scr: '取捨選択' }[f.k]);
       lab.appendChild(k);
     }
     var inputId = 'f_' + id;
@@ -302,6 +351,7 @@
     var inp = el('input'); inp.id = inputId;
     inp.type = f.type === 'date' ? 'date' : 'text';
     inp.value = str(v);
+    if (f.ph) inp.placeholder = f.ph;          // 社内版の取捨選択の欄（例: 3億）
     inp.addEventListener('input', function () { S.rec.data[id] = inp.value; 汚れた(); });
     inp.addEventListener('change', function () { S.rec.data[id] = inp.value; 汚れた(); });
     wrap.appendChild(inp);
@@ -808,7 +858,7 @@
     $('dots').classList.add('hide');
 
     var m = 埋まり(S.rec);
-    $('out-sum').textContent = '45欄のうち ' + m.n + ' 欄が埋まっています。';
+    $('out-sum').textContent = m.全 + '欄のうち ' + m.n + ' 欄が埋まっています。';
   }
 
   /** メール・Teams に貼る素のテキスト。空欄は出さない */
@@ -820,7 +870,7 @@
     F.stepsOf(S.ぜんぶ).forEach(function (s) {
       var 行 = [];
       s.ids.forEach(function (id) {
-        var f = F.get(id), v = d[id];
+        var f = F.get(id), v = F.value ? F.value(id, d) : d[id];   // 社内版の derive は 0次の答えで決まった値
         var t = Array.isArray(v) ? v.join('／') : str(v).trim();
         if (!t) return;
         if (id === '物件名称' || id === '訪問日') return;         // 頭に出しているので重ねない
@@ -932,7 +982,7 @@
     $('b-csv-all').addEventListener('click', function () {
       var a = 一覧();
       if (!a.length) { toast('まだ1件もありません'); return; }
-      var recs = a.map(function (x) { return 倉庫.読む('d:' + x.id, null); })
+      var recs = a.map(function (x) { var r = 倉庫.読む('d:' + x.id, null); 読み替え(r); return r; })
         .filter(function (r) { return r && r.data; });
       if (!recs.length) { toast('読めませんでした'); return; }
       var 日 = 今().slice(0, 10);
@@ -988,5 +1038,5 @@
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', 立ち上げ);
   else 立ち上げ();
 
-  window.__CH = { S: S, 倉庫: 倉庫, テキスト: テキスト, steps: steps, 埋まり: 埋まり };   // 検査から触る
+  window.__CH = { S: S, 倉庫: 倉庫, テキスト: テキスト, steps: steps, 埋まり: 埋まり, 読み替え: 読み替え };   // 検査から触る
 })();

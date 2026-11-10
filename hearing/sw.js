@@ -13,7 +13,7 @@
 //    この頭で始まるものだけを捨てます。でないと、よそのアプリの
 //    オフライン用の預かり分まで消してしまいます。
 var 頭 = 'compass-hearing-';
-var 版 = 頭 + '2026-11-07e';
+var 版 = 頭 + '2026.11.09-38118b68';   // build-hearapp.mjs が「版（casedb の BUILD）＋中身の指紋」を入れる
 var ファイル = [
   './', './index.html', './app.css', './app.js',
   './fields.js', './extract.js', './inputs.js', './export.js', './loadsize.js',

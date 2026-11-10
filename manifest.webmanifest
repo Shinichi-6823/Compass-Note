@@ -1,0 +1,25 @@
+{
+ "name": "コンパスノート",
+ "short_name": "コンパスノート",
+ "description": "倉庫の現地調査・ヒアリングの記録と報告書（コンパスと行き来）",
+ "start_url": "./",
+ "scope": "./",
+ "display": "standalone",
+ "orientation": "any",
+ "lang": "ja",
+ "background_color": "#F4F6F9",
+ "theme_color": "#092162",
+ "icons": [
+  {
+   "src": "icon-180.png",
+   "sizes": "180x180",
+   "type": "image/png"
+  },
+  {
+   "src": "icon-512.png",
+   "sizes": "512x512",
+   "type": "image/png",
+   "purpose": "any maskable"
+  }
+ ]
+}

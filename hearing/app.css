@@ -1,14 +1,18 @@
 /* app.css ― コンパスヒヤリング
  *   iPhone SE（375×667）を基準に作っています。
  *   ★入力欄は高さ48px以上・文字16px（iOS は16px未満だと、触ったときに画面が勝手に拡大します）
- *   色はコンパスの :root に合わせています（--cp-accent #1f5f9e ほか）
+ *   ★見た目はコンパスに合わせる（2026-11-09 利用者「アプリの雰囲気をコンパスと合わせて」）：
+ *     色＝コンパス 9本の :root（--cp-navy・--cp-header・--cp-brandline・--cp-accent #2A66B8・地 #F4F6F9・線 #D2D8E0・字 #2B3038）、
+ *     上の帯＝紺のグラデーションに上端の差し色（コンパスの #top と同じ）＋ロゴ「C と針」、角丸＝8px、字体＝コンパスの順（iPhone はヒラギノ）。
  */
 :root{
   /* 時計・カレンダーの出し物（iOS が描く部分）を画面の明暗に合わせる */
   color-scheme:light dark;
 
-  --bg:#f4f6f9; --card:#fff; --text:#2b3038; --sub:#5f6875; --line:#d2d8e0; --line2:#e9ecf1;
-  --accent:#1f5f9e; --accent-d:#174a7c; --ok:#1d7a44; --warn:#a06a00; --ng:#c0392b;
+  --bg:#F4F6F9; --card:#FFFFFF; --text:#2B3038; --sub:#5F6875; --line:#D2D8E0; --line2:#E9ECF1;
+  --accent:#2A66B8; --accent-d:#1F5CAD; --ok:#1B6E3C; --warn:#B06000; --ng:#A4262C;
+  /* コンパスの帯（9本と同じ値） */
+  --navy:#092162; --head:linear-gradient(100deg,#092162,#16357F); --brandline:#E0457B; --mark:#7BA7E8;
   --pre:#2f7d7d; --z0:#9b5276; --hard:#3d6fa6;
   --bar:72px;                                   /* 下の帯の高さ */
 }
@@ -28,42 +32,46 @@
 html,body{height:100%}
 body{
   margin:0;background:var(--bg);color:var(--text);
-  font:16px/1.65 -apple-system,BlinkMacSystemFont,"Hiragino Sans","Noto Sans JP",sans-serif;
+  font:16px/1.65 -apple-system,BlinkMacSystemFont,"Segoe UI","Hiragino Sans","BIZ UDPGothic","Yu Gothic UI",Meiryo,"Noto Sans JP",sans-serif;
   overscroll-behavior-y:none;
 }
 .hide{display:none !important}
 
 /* ── 上の帯 ───────────────────────────────── */
 .top{
-  position:sticky;top:0;z-index:20;background:var(--card);
-  border-bottom:1px solid var(--line);
-  padding:calc(env(safe-area-inset-top) + 10px) 16px 10px;
+  position:sticky;top:0;z-index:20;background:var(--head);color:#fff;
+  border-top:3px solid var(--brandline);                 /* コンパスの帯の上端の差し色 */
+  padding:calc(env(safe-area-inset-top) + 8px) 16px 10px;
 }
+.top .cpmark{width:26px;height:26px;flex:0 0 auto;display:block}
+.top .applink{flex:0 0 auto;display:inline-flex;align-items:center;min-height:36px;padding:0 12px;border-radius:8px;
+  border:1px solid rgba(255,255,255,.45);color:#fff;text-decoration:none;font-size:13px;font-weight:600;white-space:nowrap;background:rgba(255,255,255,.10)}
+.top .applink:active{background:rgba(255,255,255,.22)}
 .top .line1{display:flex;align-items:center;gap:10px;min-height:32px}
 .top h1{font-size:17px;margin:0;font-weight:700;flex:1 1 auto;min-width:0;
   overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.top .sub{font-size:12px;color:var(--sub);margin:2px 0 0}
+.top .sub{font-size:12px;color:rgba(255,255,255,.78);margin:2px 0 0}
 .iconbtn{
   /* ★幅は決め打ちにしない。「ぜんぶ」の3文字が 44px で2行に折り返していました */
   flex:0 0 auto;min-width:44px;height:44px;padding:0 8px;margin:-6px;
   border:0;background:transparent;white-space:nowrap;
-  color:var(--accent);font-size:15px;font-family:inherit;font-weight:600;
-  border-radius:10px;cursor:pointer;
+  color:#fff;font-size:15px;font-family:inherit;font-weight:600;
+  border-radius:8px;cursor:pointer;
 }
-.iconbtn:active{background:var(--line2)}
+.iconbtn:active{background:rgba(255,255,255,.18)}
 
 /* 進み具合の点 */
 .dots{display:flex;gap:5px;margin:9px 0 0;align-items:center}
-.dots i{flex:1 1 0;height:4px;border-radius:2px;background:var(--line);transition:background .15s}
-.dots i.on{background:var(--accent)}
-.dots i.done{background:var(--ok)}
+.dots i{flex:1 1 0;height:4px;border-radius:2px;background:rgba(255,255,255,.25);transition:background .15s}
+.dots i.on{background:#fff}
+.dots i.done{background:var(--mark)}
 
 /* ── 本文 ───────────────────────────────── */
 main{padding:14px 16px calc(var(--bar) + env(safe-area-inset-bottom) + 24px)}
 
 /* ── 一覧 ───────────────────────────────── */
 .card{
-  background:var(--card);border:1px solid var(--line);border-radius:12px;
+  background:var(--card);border:1px solid var(--line);border-radius:8px;
   padding:14px;margin:0 0 10px;display:flex;gap:12px;align-items:center;cursor:pointer;
 }
 .card:active{background:var(--line2)}
@@ -74,7 +82,7 @@ main{padding:14px 16px calc(var(--bar) + env(safe-area-inset-bottom) + 24px)}
 .card .gauge span{display:block;height:100%;background:var(--accent);border-radius:3px}
 .card .del{
   flex:0 0 auto;width:44px;height:44px;border:0;background:transparent;color:var(--sub);
-  font-size:20px;border-radius:10px;cursor:pointer;
+  font-size:20px;border-radius:8px;cursor:pointer;
 }
 .card .del:active{background:var(--line2);color:var(--ng)}
 .empty{text-align:center;color:var(--sub);padding:48px 16px;font-size:14px;line-height:2}
@@ -87,11 +95,11 @@ main{padding:14px 16px calc(var(--bar) + env(safe-area-inset-bottom) + 24px)}
   display:inline-block;font-size:10px;font-weight:600;padding:1px 6px;border-radius:999px;
   margin-left:6px;vertical-align:1.5px;border:1px solid currentColor;
 }
-.k-pre{color:var(--pre)} .k-z0{color:var(--z0)} .k-hard{color:var(--hard)}
+.k-pre{color:var(--pre)} .k-z0{color:var(--z0)} .k-hard{color:var(--hard)} .k-scr{color:#8a4b00}
 
 input[type=text],input[type=date],input[type=time],textarea,select{
   width:100%;min-height:48px;padding:11px 12px;font-size:16px;font-family:inherit;line-height:1.5;
-  color:var(--text);background:var(--card);border:1.5px solid var(--line);border-radius:9px;
+  color:var(--text);background:var(--card);border:1.5px solid var(--line);border-radius:8px;
   -webkit-appearance:none;appearance:none;
 }
 input:focus,textarea:focus,select:focus{outline:0;border-color:var(--accent);box-shadow:0 0 0 3px rgba(31,95,158,.14)}
@@ -134,29 +142,29 @@ input.num{text-align:right;font-variant-numeric:tabular-nums}
 .mini{
   flex:0 0 auto;min-height:48px;padding:0 14px;white-space:nowrap;
   font-size:14px;font-weight:600;font-family:inherit;color:#fff;background:var(--accent);
-  border:0;border-radius:10px;cursor:pointer;
+  border:0;border-radius:8px;cursor:pointer;
 }
 .mini:active{background:var(--accent-d)}
 .mini[disabled]{background:var(--line);color:var(--sub)}
 /* 郵便番号から引いた住所を「入れ替える」で出すとき */
 .readback .cand{
   margin:6px 0 0;padding:10px 12px;color:var(--text);background:var(--card);
-  border:1.5px solid var(--accent);border-radius:10px;
+  border:1.5px solid var(--accent);border-radius:8px;
 }
 
 /* 読み返し（3,000ケース・9時間・≒3億円）。打ち間違いに気づくための行 */
 .readback{margin:5px 0 0;font-size:12px;line-height:1.5;color:var(--sub);min-height:17px}
 
 /* ── アクションの表 ───────────────────────── */
-.act{border:1px solid var(--line);border-radius:11px;padding:12px;margin:0 0 10px;background:var(--card)}
+.act{border:1px solid var(--line);border-radius:8px;padding:12px;margin:0 0 10px;background:var(--card)}
 .act .r{display:flex;gap:8px;align-items:center;margin:0 0 8px}
 .act .r:last-child{margin:0}
 .act .r > *{flex:1 1 0;min-width:0}
-.act .x{flex:0 0 44px;height:44px;border:0;background:transparent;color:var(--sub);font-size:19px;border-radius:9px;cursor:pointer}
+.act .x{flex:0 0 44px;height:44px;border:0;background:transparent;color:var(--sub);font-size:19px;border-radius:8px;cursor:pointer}
 .act .x:active{background:var(--line2);color:var(--ng)}
 
 /* ── 候補（メモから拾ったもの） ──────────────── */
-.cands{border:1.5px solid var(--accent);border-radius:12px;overflow:hidden;margin:14px 0 0;background:var(--card)}
+.cands{border:1.5px solid var(--accent);border-radius:8px;overflow:hidden;margin:14px 0 0;background:var(--card)}
 .cands h3{margin:0;padding:11px 14px;font-size:14px;background:var(--accent);color:#fff}
 .cand{display:flex;gap:10px;align-items:center;padding:11px 14px;border-top:1px solid var(--line2)}
 .cand:first-of-type{border-top:0}
@@ -165,14 +173,14 @@ input.num{text-align:right;font-variant-numeric:tabular-nums}
 .cand .c-val{font-size:15px;font-weight:600;word-break:break-word}
 .cand .c-src{font-size:11px;color:var(--sub);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .cand button{flex:0 0 auto;min-height:44px;padding:9px 16px;font-size:14px;font-weight:600;font-family:inherit;
-  color:#fff;background:var(--accent);border:0;border-radius:9px;cursor:pointer}
+  color:#fff;background:var(--accent);border:0;border-radius:8px;cursor:pointer}
 .cand button[disabled]{background:var(--line);color:var(--sub)}
 
 /* ── ボタン ───────────────────────────────── */
 .btn{
   display:block;width:100%;min-height:52px;padding:13px;margin:0 0 10px;
   font-size:16px;font-weight:700;font-family:inherit;color:#fff;background:var(--accent);
-  border:0;border-radius:11px;cursor:pointer;-webkit-appearance:none;text-align:center;
+  border:0;border-radius:8px;cursor:pointer;-webkit-appearance:none;text-align:center;
 }
 .btn:active{background:var(--accent-d)}
 .btn.sub{background:transparent;color:var(--accent);border:1.5px solid var(--accent)}
@@ -236,3 +244,6 @@ body.kb .bar{padding-bottom:10px}
 .sect{font-size:13px;font-weight:700;color:var(--accent);margin:22px 0 10px;
   padding-bottom:6px;border-bottom:1px solid var(--line)}
 .sect:first-child{margin-top:0}
+/* 社内版：0次の答えに続けて聞く取捨選択の欄（1回の答えで両方が埋まる） */
+.fld.follow{margin-left:10px;padding-left:10px;border-left:3px solid #e6c9a3}
+.follow-auto{font-size:13px;color:#8a4b00;padding:2px 0}
