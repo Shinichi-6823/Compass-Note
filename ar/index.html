@@ -23,6 +23,13 @@
     <h1>コンパスAR</h1>
   </div>
   <p class="sub">Matelier 3D の形を、カメラ越しに置いて見る</p>
+  <!-- コンパスのアプリの切り替え（ノート・ヒヤリング・AR。3本とも同じ形・いまのアプリは白）。
+       ノートは同じ公開先の1つ上（GitHub のリポジトリのいちばん上）・ヒヤリングは ../hearing/。https のときだけ出す（app.js） -->
+  <nav class="cpapps hide" id="top-apps" aria-label="コンパスのアプリ">
+    <a id="top-note" href="../" title="現場調査のアプリ「コンパスノート」を開きます">📋 ノート</a>
+    <a id="top-hear" href="../hearing/" title="打合せのヒヤリングを入れるアプリ「コンパスヒヤリング」を開きます">💬 ヒヤリング</a>
+    <span aria-current="page">📱 AR</span>
+  </nav>
 </header>
 
 <main>
@@ -80,7 +87,7 @@
     <p class="note">USDZ は iPhone の「ファイル」アプリで開くと、そのまま AR で置けます。パソコンで作って OneDrive に置き、現場で開く使い方もできます。</p>
   </section>
 
-  <p class="note center foot">版 v2026.11.09<br>選んだファイルはこの端末の中だけで読みます（どこへも送りません）</p>
+  <p class="note center foot">版 v2026.11.10<br>選んだファイルはこの端末の中だけで読みます（どこへも送りません）</p>
 </main>
 
 <!-- Android（WebXR）の AR 中に重ねる操作。iPhone は Quick Look が自分の画面を出す -->

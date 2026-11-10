@@ -456,6 +456,10 @@ $('#xr-bar').addEventListener('click', (e) => {
   } else if (k === 'end') S.xr.session.end();
 });
 
+/* ───────── コンパスのアプリの切り替え（2026-11-10 利用者「コンパスノートと、ヒヤリングとのリンクを」） ─────────
+ *  ノート＝../・ヒヤリング＝../hearing/（同じ公開先）。file:// や Claude の中では行き先が無いので出さない */
+$('#top-apps').classList.toggle('hide', location.protocol !== 'https:' && !/^(localhost|127\.0\.0\.1)$/.test(location.hostname));
+
 /* ───────── オフライン（https のときだけ） ───────── */
 if ('serviceWorker' in navigator && location.protocol === 'https:') {
   navigator.serviceWorker.register('./sw.js').catch(() => {});

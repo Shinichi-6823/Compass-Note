@@ -60,7 +60,12 @@ p{margin:0}
 .bar .btn.primary{background:#fff;color:var(--navy);border-color:#fff}
 .bar .iconbtn{color:#fff}
 .bar .muted,.bar .ttl span{color:rgba(255,255,255,.75)}
-.bar .applink{text-decoration:none;white-space:nowrap}
+/* コンパスのアプリの切り替え（ノート・ヒヤリング・AR。2026-11-10）。3本とも同じ形＝帯の2段目・いま開いているアプリは白 */
+.cpapps{display:flex;gap:6px;padding:0 max(16px,env(safe-area-inset-right,0px)) 8px max(16px,env(safe-area-inset-left,0px))}
+.cpapps a,.cpapps span{flex:1 1 0;min-width:0;display:flex;align-items:center;justify-content:center;min-height:34px;padding:0 6px;border-radius:8px;
+  border:1px solid rgba(255,255,255,.45);background:rgba(255,255,255,.10);color:#fff;font-size:13px;font-weight:600;text-decoration:none;white-space:nowrap}
+.cpapps a:active{background:rgba(255,255,255,.22)}
+.cpapps [aria-current]{background:#fff;color:var(--navy);border-color:#fff}
 .cpmark{width:26px;height:26px;flex:none;display:block}
 .bar-in{display:flex;align-items:center;gap:10px;min-height:58px;padding-block:6px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
 .brand{display:flex;align-items:center;gap:10px;font-weight:700;font-size:17px;flex:1;min-width:0}
@@ -322,8 +327,8 @@ input:focus,select:focus,textarea:focus{outline:2px solid var(--accent);outline-
   .card{padding:14px}
   .btn{min-height:44px}
 }
-/* 一覧の帯にロゴ・ヒヤリングへの道・新しい調査が並ぶ（2026-11-09）。幅 420px 以下は版を隠し、ボタンを詰めて名前が切れないように */
-@media (max-width:420px){ .bar .ver{display:none} .bar .applink,.bar .btn.primary.sm{padding:0 9px;font-size:13px} .bar-in{gap:8px} .bar .brand{gap:7px} }
+/* 一覧の帯にロゴ・新しい調査が並ぶ（アプリの切り替えは2段目＝2026-11-10）。幅 420px 以下は版を隠し、ボタンを詰めて名前が切れないように */
+@media (max-width:420px){ .bar .ver{display:none} .bar .btn.primary.sm{padding:0 9px;font-size:13px} .bar-in{gap:8px} .bar .brand{gap:7px} }
 @media (max-width:360px){ .ver{display:none} .tab{font-size:9px} .tab span{letter-spacing:-.07em} .addrow{grid-template-columns:1fr} .two{grid-template-columns:1fr} }
 @media (max-width:380px){ .seg button{padding:0 8px} .isum{grid-template-columns:1fr 1fr} }
 .dwrap{flex:1;min-height:0;display:flex}
@@ -1666,7 +1671,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var r,n,i,a,
 <script>
 'use strict';
 /* 版（build-note.mjs が casedb.js の BUILD と同じ日付を入れる。帯の左の版と同じ決まり＝不具合の連絡に使う） */
-const BUILD = '2026.11.09';
+const BUILD = '2026.11.10';
 /* pdf.js の worker は同梱した pdf.worker.min.js（window.pdfjsWorker）をそのまま使う（通信なし）。CMap（和文フォントの対応表）は同梱していない＝
    文字が埋め込まれていない PDF では文字が出ないことがある（線・図形は出る）。 */
 const PDF_CMAPS='';
@@ -1890,15 +1895,17 @@ function render(){
   drawThumbs(app);
   if(state.tab==='drawing'&&s.drawing) dSetup(s);
 }
-/** コンパスヒヤリング（営業のスマホ）へ（2026-11-09 利用者「ノートとヒヤリングに相互リンク」）。
- *  同じ公開先の hearing/（GitHub のリポジトリの hearing フォルダ）。https（と開発の localhost）のときだけ出す＝file:// や Claude の中では行き先が無い */
-function hearLink(){
+/** コンパスのアプリの切り替え（2026-11-09 利用者「ノートとヒヤリングに相互リンク」・2026-11-10「コンパスノートと、ヒヤリングとのリンクを」＝AR も）。
+ *  同じ公開先（GitHub のリポジトリ）のいちばん上がノート・hearing/ がヒヤリング・ar/ が AR。3本とも同じ並び・いまのアプリは白（aria-current）。
+ *  https（と開発の localhost）のときだけ出す＝file:// や Claude の中では行き先が無い。
+ *  ★AR は新しいタブ（Safari）で：ホーム画面に追加したノートの中で開くと、iPhone の AR Quick Look が開く保証が無いため */
+function appsNav(){
   const ok=location.protocol==='https:'||/^(localhost|127\.0\.0\.1)$/.test(location.hostname);
-  return ok?`<a class="btn sm applink" id="hearLink" href="./hearing/" title="打合せのヒヤリング（0次提案で聞くこと）を入れるアプリ「コンパスヒヤリング」を開きます">ヒヤリング</a>`:'';
+  return ok?`<nav class="cpapps" aria-label="コンパスのアプリ"><span aria-current="page">📋 ノート</span><a id="hearLink" href="./hearing/" title="打合せのヒヤリング（0次提案で聞くこと）を入れるアプリ「コンパスヒヤリング」を開きます">💬 ヒヤリング</a><a id="arLink" href="./ar/" target="_blank" rel="noopener" title="Matelier 3D の形をカメラ越しに置いて見るアプリ「コンパスAR」を開きます">📱 AR</a></nav>`:'';
 }
 function viewList(){
   const ss=[...state.surveys].sort((a,b)=>b.updatedAt-a.updatedAt);
-  return `<header class="bar"><div class="bar-in"><div class="brand"><svg class="cpmark" viewBox="0 0 64 64" aria-hidden="true" focusable="false"><path d="M50.1 17.8A23 23 0 1 0 50.1 46.2" fill="none" stroke="#FFFFFF" stroke-width="7" stroke-linecap="round"/><path d="M60 32L33 26.5 33 37.5Z" fill="#E0457B" stroke="none"/><path d="M19 32L33 26.5 33 37.5Z" fill="#7BA7E8" stroke="none"/><circle cx="33" cy="32" r="2.6" fill="#092162" stroke="none"/></svg><span>コンパスノート</span><span class="ver mono muted small" title="この画面の版（不具合の連絡に）">v${esc(BUILD)}</span></div>${hearLink()}<button class="btn primary sm" data-act="newSurvey">＋ 新しい調査</button></div></header>
+  return `<header class="bar"><div class="bar-in"><div class="brand"><svg class="cpmark" viewBox="0 0 64 64" aria-hidden="true" focusable="false"><path d="M50.1 17.8A23 23 0 1 0 50.1 46.2" fill="none" stroke="#FFFFFF" stroke-width="7" stroke-linecap="round"/><path d="M60 32L33 26.5 33 37.5Z" fill="#E0457B" stroke="none"/><path d="M19 32L33 26.5 33 37.5Z" fill="#7BA7E8" stroke="none"/><circle cx="33" cy="32" r="2.6" fill="#092162" stroke="none"/></svg><span>コンパスノート</span><span class="ver mono muted small" title="この画面の版（不具合の連絡に）">v${esc(BUILD)}</span></div><button class="btn primary sm" data-act="newSurvey">＋ 新しい調査</button></div>${appsNav()}</header>
   <main class="main" id="main"><div class="col">
   ${DB.persistent?'':'<div class="note warn"><b>この開き方では端末に保存できません。</b>画面を閉じると入力内容が消え、写真や PDF も渡せません（SharePoint アプリの内蔵ブラウザなど）。見るだけにして、調査は Claude の中か、ホーム画面に追加したノートで行ってください。</div>'}
   <div class="list-h"><h1>調査一覧</h1><span class="muted mono small">${ss.length}件</span></div>

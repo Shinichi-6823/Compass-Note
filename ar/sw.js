@@ -8,7 +8,7 @@
 //    ほかのアプリ（コンパスノート・コンパスヒヤリング）と同じ置き場所（オリジン）を分け合う。
 //    掃除のときは、この頭で始まるものだけを捨てる。
 var 頭 = 'compass-ar-';
-var 版 = 頭 + '2026.11.09-4b9913b6';      // build-arapp.mjs が「版（casedb の BUILD）＋中身の指紋」を入れる
+var 版 = 頭 + '2026.11.10-475301d3';      // build-arapp.mjs が「版（casedb の BUILD）＋中身の指紋」を入れる
 var ファイル = ["./","./app.css","./app.js","./icon-180.png","./icon-192.png","./icon-512.png","./index.html","./manifest.webmanifest","./model.js","./vendor/LICENSE-three.txt","./vendor/addons/controls/OrbitControls.js","./vendor/addons/exporters/USDZExporter.js","./vendor/addons/libs/fflate.module.js","./vendor/addons/loaders/GLTFLoader.js","./vendor/addons/loaders/MTLLoader.js","./vendor/addons/loaders/OBJLoader.js","./vendor/addons/utils/BufferGeometryUtils.js","./vendor/addons/utils/TextureUtils.js","./vendor/three.module.min.js"];      // build-arapp.mjs が出すファイルの一覧を入れる
 
 self.addEventListener('install', function (e) {

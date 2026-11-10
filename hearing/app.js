@@ -128,7 +128,7 @@
 
   function 描く() {
     ['list', 'edit', 'out'].forEach(function (v) { $('v-' + v).classList.toggle('hide', v !== S.view); });
-    if (S.view !== 'list') $('top-app').classList.add('hide');
+    if (S.view !== 'list') $('top-apps').classList.add('hide');
     if (S.view === 'list') 一覧を描く();
     if (S.view === 'edit') 入力を描く();
     if (S.view === 'out') 出力を描く();
@@ -140,9 +140,9 @@
     $('top-sub').textContent = '打合せのヒヤリングを、この端末の中だけに保存します';
     $('top-left').classList.add('hide');
     $('top-right').classList.add('hide');
-    //  コンパスノート（現場調査）へ（2026-11-09 利用者「ノートとヒヤリングに相互リンク」）。
-    //  ノートは同じ公開先の1つ上（../）。file:// や Claude の中では行き先が無いので出さない
-    $('top-app').classList.toggle('hide', location.protocol !== 'https:' && !/^(localhost|127\.0\.0\.1)$/.test(location.hostname));
+    //  コンパスのアプリの切り替え（2026-11-09 利用者「ノートとヒヤリングに相互リンク」・2026-11-10 AR も）。
+    //  ノートは同じ公開先の1つ上（../）・AR は ../ar/。file:// や Claude の中では行き先が無いので出さない
+    $('top-apps').classList.toggle('hide', location.protocol !== 'https:' && !/^(localhost|127\.0\.0\.1)$/.test(location.hostname));
     $('dots').classList.add('hide');
 
     var box = $('list'); box.textContent = '';

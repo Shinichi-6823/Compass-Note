@@ -22,11 +22,17 @@
     <button class="iconbtn hide" id="top-left" type="button">一覧</button>
     <svg class="cpmark" viewBox="0 0 64 64" aria-hidden="true" focusable="false"><path d="M50.1 17.8A23 23 0 1 0 50.1 46.2" fill="none" stroke="#FFFFFF" stroke-width="7" stroke-linecap="round"/><path d="M60 32L33 26.5 33 37.5Z" fill="#E0457B"/><path d="M19 32L33 26.5 33 37.5Z" fill="#7BA7E8"/><circle cx="33" cy="32" r="2.6" fill="#092162"/></svg>
     <h1 id="top-title">コンパスヒヤリング</h1>
-    <!-- コンパスノート（現場調査）へ。同じ公開先の1つ上（GitHub のリポジトリのいちばん上）。https のときだけ出す（app.js） -->
-    <a class="applink hide" id="top-app" href="../" title="現場調査のアプリ「コンパスノート」を開きます">📋 ノート</a>
     <button class="iconbtn hide" id="top-right" type="button">ぜんぶ</button>
   </div>
   <p class="sub" id="top-sub"></p>
+  <!-- コンパスのアプリの切り替え（ノート・ヒヤリング・AR。3本とも同じ形・いまのアプリは白）。
+       ノートは同じ公開先の1つ上（GitHub のリポジトリのいちばん上）・AR は ../ar/。https のときだけ・一覧の画面だけ出す（app.js）
+       ★AR は新しいタブ（Safari）で：ホーム画面のアプリの中では iPhone の AR Quick Look が開く保証が無い -->
+  <nav class="cpapps hide" id="top-apps" aria-label="コンパスのアプリ">
+    <a id="top-app" href="../" title="現場調査のアプリ「コンパスノート」を開きます">📋 ノート</a>
+    <span aria-current="page">💬 ヒヤリング</span>
+    <a id="top-ar" href="../ar/" target="_blank" rel="noopener" title="Matelier 3D の形をカメラ越しに置いて見るアプリ「コンパスAR」を開きます">📱 AR</a>
+  </nav>
   <div class="dots hide" id="dots"></div>
 </header>
 
@@ -35,7 +41,7 @@
   <section id="v-list">
     <div id="list"></div>
     <button class="btn sub" id="b-csv-all" type="button" style="margin-top:14px">📊 ぜんぶを1つのCSVにする（台帳用）</button>
-    <p class="note" id="ver" style="text-align:center;margin-top:18px">版 v2026.11.09</p>
+    <p class="note" id="ver" style="text-align:center;margin-top:18px">版 v2026.11.10</p>
   </section>
 
   <!-- ② 入力 -->

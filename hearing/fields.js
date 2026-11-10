@@ -1,6 +1,6 @@
 /* fields.js ― コンパスのヒアリング欄（自動生成・手で直さない）
  *   作り直し: node src/build-hearapp.mjs（開発フォルダ）
- *   出どころ: コンパス src/hearing.js の SCHEMA（v2026.11.09）＋ src/hearapp/fields.extra.mjs（並べ方・入れ方）
+ *   出どころ: コンパス src/hearing.js の SCHEMA（v2026.11.10）＋ src/hearapp/fields.extra.mjs（並べ方・入れ方）
  *   欄 44 ／ 既定で出す 44 ／ ステップ 7
  *   ★公開用: 0次提案で聞く欄＋物件名称・訪問日・社名（競合は「競合他社」「競合他社名」に統一）
  */
